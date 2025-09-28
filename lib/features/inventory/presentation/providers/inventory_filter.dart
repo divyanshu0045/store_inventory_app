@@ -1,0 +1,1 @@
+enum InventoryFilter { all, lowStock }

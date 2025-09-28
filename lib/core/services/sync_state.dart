@@ -1,0 +1,1 @@
+enum SyncState { idle, syncing, success, error }

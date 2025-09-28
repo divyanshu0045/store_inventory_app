@@ -188,6 +188,13 @@ class StockTransactionDao extends DatabaseAccessor<AppDatabase>
         .watch();
   }
 
+  Stream<List<StockTransaction>> watchRecentTransactions(int limit) {
+    return (select(stockTransactions)
+          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+          ..limit(limit))
+        .watch();
+  }
+
   Future<void> insertTransaction(StockTransaction transaction) =>
       into(stockTransactions).insert(transaction);
 }

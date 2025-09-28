@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:inventory_management_app/domain/entities/user.dart';
 import 'package:inventory_management_app/features/inventory/presentation/providers/inventory_filter.dart';
+import 'package:inventory_management_app/features/auth/presentation/providers/auth_providers.dart';
 import 'package:inventory_management_app/features/inventory/presentation/providers/inventory_providers.dart';
 import 'package:inventory_management_app/widgets/role_restricted_widget.dart';
 
@@ -43,6 +44,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   Widget build(BuildContext context) {
     final productsAsyncValue = ref.watch(productListStreamProvider);
     final currentFilter = ref.watch(inventoryFilterProvider);
+    final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -109,13 +111,61 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
-              return ListTile(
-                title: Text(product.name),
-                subtitle: Text('SKU: ${product.sku}'),
-                trailing: Text('Qty: ${product.stockQuantity}'),
-                onTap: () {
-                  context.push('/inventory/product/${product.id}');
+              return Dismissible(
+                key: ValueKey(product.id),
+                confirmDismiss: (direction) async {
+                  if (direction == DismissDirection.endToStart) { // Delete
+                    if (currentUser?.role != UserRole.admin) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Only admins can delete products.')));
+                      return false;
+                    }
+                    final bool? confirmed = await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete Product?'),
+                        content: Text('Are you sure you want to delete "${product.name}"?'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+                          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      await ref.read(deleteProductProvider).call(product.id);
+                      return true;
+                    }
+                    return false;
+                  } else { // Edit
+                    if (currentUser?.role != UserRole.admin && currentUser?.role != UserRole.staff) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('You do not have permission to edit products.')));
+                      return false;
+                    }
+                    context.push('/edit-product', extra: product);
+                    return false; // Don't dismiss the item
+                  }
                 },
+                background: Container(
+                  color: Colors.blue,
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: const Icon(Icons.edit, color: Colors.white),
+                ),
+                secondaryBackground: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: const Icon(Icons.delete, color: Colors.white),
+                ),
+                child: ListTile(
+                  title: Text(product.name),
+                  subtitle: Text('SKU: ${product.sku}'),
+                  trailing: Text('Qty: ${product.stockQuantity}'),
+                  onTap: () {
+                    context.push('/inventory/product/${product.id}');
+                  },
+                ),
               );
             },
           );

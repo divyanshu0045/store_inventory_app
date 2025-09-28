@@ -16,6 +16,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _skuController = TextEditingController();
+  final _barcodeController = TextEditingController();
   final _quantityController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _categoryController = TextEditingController();
@@ -28,6 +29,7 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
   void dispose() {
     _nameController.dispose();
     _skuController.dispose();
+    _barcodeController.dispose();
     _quantityController.dispose();
     _descriptionController.dispose();
     _categoryController.dispose();
@@ -38,12 +40,22 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
     super.dispose();
   }
 
+  Future<void> _scanBarcode() async {
+    final code = await context.push<String>('/scanner');
+    if (code != null) {
+      setState(() {
+        _barcodeController.text = code;
+      });
+    }
+  }
+
   Future<void> _saveProduct() async {
     if (_formKey.currentState!.validate()) {
       final newProduct = Product(
         id: const Uuid().v4(),
         name: _nameController.text,
         sku: _skuController.text,
+        barcode: _barcodeController.text,
         stockQuantity: int.tryParse(_quantityController.text) ?? 0,
         description: _descriptionController.text,
         category: _categoryController.text,
@@ -109,6 +121,18 @@ class _AddProductScreenState extends ConsumerState<AddProductScreen> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _barcodeController,
+                decoration: InputDecoration(
+                  labelText: 'Barcode (Optional)',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: _scanBarcode,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(

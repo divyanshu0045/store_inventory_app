@@ -17,6 +17,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _skuController;
+  late TextEditingController _barcodeController;
   late TextEditingController _quantityController;
   late TextEditingController _descriptionController;
   late TextEditingController _categoryController;
@@ -30,6 +31,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
     super.initState();
     _nameController = TextEditingController(text: widget.product.name);
     _skuController = TextEditingController(text: widget.product.sku);
+    _barcodeController = TextEditingController(text: widget.product.barcode);
     _quantityController =
         TextEditingController(text: widget.product.stockQuantity.toString());
     _descriptionController =
@@ -48,6 +50,7 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
   void dispose() {
     _nameController.dispose();
     _skuController.dispose();
+    _barcodeController.dispose();
     _quantityController.dispose();
     _descriptionController.dispose();
     _categoryController.dispose();
@@ -58,12 +61,22 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
     super.dispose();
   }
 
+  Future<void> _scanBarcode() async {
+    final code = await context.push<String>('/scanner');
+    if (code != null) {
+      setState(() {
+        _barcodeController.text = code;
+      });
+    }
+  }
+
   Future<void> _updateProduct() async {
     if (_formKey.currentState!.validate()) {
       final updatedProduct = Product(
         id: widget.product.id,
         name: _nameController.text,
         sku: _skuController.text,
+        barcode: _barcodeController.text,
         stockQuantity: int.tryParse(_quantityController.text) ?? 0,
         description: _descriptionController.text,
         category: _categoryController.text,
@@ -72,7 +85,6 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
         cost: double.tryParse(_costController.text),
         sellingPrice: double.tryParse(_priceController.text),
         // Copy other fields from the original product
-        barcode: widget.product.barcode,
         imageUrls: widget.product.imageUrls,
         documentUrls: widget.product.documentUrls,
         expiryDate: widget.product.expiryDate,
@@ -139,6 +151,18 @@ class _EditProductScreenState extends ConsumerState<EditProductScreen> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+               TextFormField(
+                controller: _barcodeController,
+                decoration: InputDecoration(
+                  labelText: 'Barcode (Optional)',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: _scanBarcode,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(

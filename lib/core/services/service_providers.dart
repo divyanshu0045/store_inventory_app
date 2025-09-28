@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inventory_management_app/core/services/sync_service.dart';
 import 'package:inventory_management_app/core/services/sync_state.dart';
-import 'package:inventory_management_app/core/services/sync_state.dart';
 import 'package:inventory_management_app/features/inventory/presentation/providers/inventory_providers.dart';
 
 final syncStateProvider = StateProvider<SyncState>((ref) => SyncState.idle);

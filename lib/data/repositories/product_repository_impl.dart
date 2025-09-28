@@ -65,6 +65,16 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
+  Future<int> getProductCount() {
+    return _productDao.getProductCount();
+  }
+
+  @override
+  Future<int> getLowStockCount() {
+    return _productDao.getLowStockCount();
+  }
+
+  @override
   Future<void> syncProducts() async {
     // 1. Push local changes to the remote server
     final unsyncedProducts = await _productDao.getUnsyncedProducts();

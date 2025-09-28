@@ -19,6 +19,15 @@ class StockTransactionRepositoryImpl implements StockTransactionRepository {
   }
 
   @override
+  Stream<List<domain.StockTransaction>> watchRecentTransactions({int limit = 5}) {
+    return _database.stockTransactionDao
+        .watchRecentTransactions(limit)
+        .map((transactions) => transactions
+            .map((t) => _mapDbTransactionToDomainTransaction(t))
+            .toList());
+  }
+
+  @override
   Future<void> addTransaction(domain.StockTransaction transaction) {
     return _database.transaction(() async {
       // 1. Insert the transaction record

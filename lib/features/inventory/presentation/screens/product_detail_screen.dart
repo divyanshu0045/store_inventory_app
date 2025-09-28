@@ -26,7 +26,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -106,6 +106,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
           tabs: const [
             Tab(text: 'Overview'),
             Tab(text: 'Transactions'),
+            Tab(text: 'Attachments'),
           ],
         ),
       ),
@@ -143,9 +144,34 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                       ),
                     ),
                     ListTile(
+                      leading: const Icon(Icons.qr_code),
+                      title: const Text('Barcode'),
+                      trailing: Text(product.barcode ?? 'N/A'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.category_outlined),
+                      title: const Text('Category'),
+                      trailing: Text(product.category ?? 'N/A'),
+                    ),
+                    ListTile(
                       leading: const Icon(Icons.location_on_outlined),
                       title: const Text('Location'),
                       trailing: Text(product.location ?? 'N/A'),
+                    ),
+                     ListTile(
+                      leading: const Icon(Icons.production_quantity_limits),
+                      title: const Text('Min. Stock Threshold'),
+                      trailing: Text(product.minimumStockThreshold?.toString() ?? 'N/A'),
+                    ),
+                     ListTile(
+                      leading: const Icon(Icons.monetization_on_outlined),
+                      title: const Text('Cost Price'),
+                      trailing: Text('\$${product.cost?.toStringAsFixed(2) ?? 'N/A'}'),
+                    ),
+                     ListTile(
+                      leading: const Icon(Icons.price_check_outlined),
+                      title: const Text('Selling Price'),
+                      trailing: Text('\$${product.sellingPrice?.toStringAsFixed(2) ?? 'N/A'}'),
                     ),
                     ListTile(
                       leading: const Icon(Icons.description_outlined),
@@ -191,6 +217,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                     error: (error, stack) => Center(child: Text('Error: $error')),
                   );
                 },
+              ),
+              // Attachments Tab
+              const Center(
+                child: Text('Attachments will be shown here.'),
               ),
             ],
           );

@@ -65,7 +65,6 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  @override
   Future<int> getProductCount() {
     return _productDao.getProductCount();
   }

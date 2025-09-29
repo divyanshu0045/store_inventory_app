@@ -1,0 +1,18 @@
+# Dart & Flutter
+/.dart_tool/
+/.packages
+/build/
+/coverage/
+pubspec.lock
+
+# IDE-specific
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Misc
+.DS_Store
+# Flutter generated files
+.flutter-plugins
+.flutter-plugins-dependencies

@@ -47,6 +47,12 @@ Before you begin, ensure you have the following installed on your system:
     flutter pub get
     ```
 
+3.  **Generating Platform-Specific Files:**
+    If you have cloned this repository and are missing the platform-specific directories (`android`, `ios`, `web`, etc.), you can generate them by running the following command in the project root. This will create the necessary project files for each platform without overwriting your existing Dart code.
+    ```bash
+    flutter create .
+    ```
+
 ### **IMPORTANT**: Code Generation
 
 This project uses code generation for the database (Drift) and data models (Freezed). Before you can build or run the app, you **must** run the `build_runner` to generate the necessary files (`.g.dart`, `.freezed.dart`).

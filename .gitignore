@@ -16,3 +16,15 @@ pubspec.lock
 # Flutter generated files
 .flutter-plugins
 .flutter-plugins-dependencies
+
+# Platform-specific files
+/android/app/build/
+/android/.gradle/
+/android/local.properties
+/ios/Pods/
+/ios/DerivedData/
+/ios/.symlinks/
+/ios/Flutter/ephemeral/
+/macos/Flutter/ephemeral/
+/windows/flutter/ephemeral/
+/linux/flutter/ephemeral/

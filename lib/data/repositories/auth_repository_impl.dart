@@ -38,7 +38,7 @@ class AuthRepositoryImpl implements AuthRepository {
       email: Value(email),
       // Passwords should always be hashed before storing.
       password: Value(password),
-      role: Value(role.index),
+      role: Value(role),
     );
 
     await _userDao.insertUser(newUserCompanion);

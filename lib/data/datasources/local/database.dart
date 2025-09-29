@@ -27,6 +27,18 @@ class Products extends Table {
   RealColumn get sellingPrice => real().nullable()();
   TextColumn get imageUrls => text().map(const ListConverter()).nullable()();
   TextColumn get documentUrls => text().map(const ListConverter()).nullable()();
+  // expiryDate is removed from here and moved to the Lots table
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// Lots Table for Batch/Lot Tracking
+class Lots extends Table {
+  TextColumn get id => text()();
+  TextColumn get productId => text().references(Products, #id)();
+  TextColumn get batchNumber => text()();
+  IntColumn get quantity => integer()();
   DateTimeColumn get expiryDate => dateTime().nullable()();
 
   @override
@@ -60,6 +72,7 @@ class Users extends Table {
 class StockTransactions extends Table {
   TextColumn get id => text()();
   TextColumn get productId => text()();
+  TextColumn get lotId => text().nullable().references(Lots, #id)(); // Link to a specific lot
   IntColumn get type => integer().map(const EnumIndexConverter(TransactionType.values))();
   IntColumn get quantity => integer()();
   DateTimeColumn get timestamp => dateTime()();
@@ -74,6 +87,7 @@ class ListConverter extends TypeConverter<List<String>, String> {
   const ListConverter();
   @override
   List<String> fromSql(String fromDb) {
+    if (fromDb.isEmpty) return [];
     return fromDb.split(',');
   }
 
@@ -84,13 +98,13 @@ class ListConverter extends TypeConverter<List<String>, String> {
 }
 
 @DriftDatabase(
-    tables: [Products, Suppliers, Users, StockTransactions],
-    daos: [ProductDao, SupplierDao, UserDao, StockTransactionDao])
+    tables: [Products, Suppliers, Users, StockTransactions, Lots],
+    daos: [ProductDao, SupplierDao, UserDao, StockTransactionDao, LotDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,6 +112,10 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (m, from, to) async {
           if (from < 3) {
             await m.addColumn(users, users.password);
+          }
+          if (from < 4) {
+            await m.createTable(lots);
+            await m.addColumn(stockTransactions, stockTransactions.lotId);
           }
         },
       );
@@ -112,7 +130,7 @@ LazyDatabase _openConnection() {
 }
 
 // DAOs
-@DriftAccessor(tables: [Products])
+@DriftAccessor(tables: [Products, Lots])
 class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   ProductDao(AppDatabase db) : super(db);
 
@@ -120,14 +138,11 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
     var query = select(products);
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
-      query.where((p) =>
-          p.name.like('%$searchQuery%') | p.sku.like('%$searchQuery%'));
+      query.where((p) => p.name.like('%$searchQuery%') | p.sku.like('%$searchQuery%'));
     }
 
     if (lowStock) {
-      query.where((p) =>
-          p.minimumStockThreshold.isNotNull() &
-          p.stockQuantity.isSmallerOrEqual(p.minimumStockThreshold));
+      query.where((p) => p.minimumStockThreshold.isNotNull() & p.stockQuantity.isSmallerOrEqual(p.minimumStockThreshold));
     }
 
     return query.watch();
@@ -145,21 +160,33 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   }
 
   Future<int> getProductCount() async {
-    final countExp = countAll();
+    final countExp = products.id.count();
     final query = selectOnly(products)..addColumns([countExp]);
     final result = await query.getSingle();
     return result.read(countExp) ?? 0;
   }
 
   Future<int> getLowStockCount() async {
-    final countExp = countAll(
-        filter: products.stockQuantity.isSmallerOrEqual(products.minimumStockThreshold) &
-            products.minimumStockThreshold.isNotNull());
+    final countExp = products.id.count(filter: products.stockQuantity.isSmallerOrEqual(products.minimumStockThreshold) & products.minimumStockThreshold.isNotNull());
     final query = selectOnly(products)..addColumns([countExp]);
     final result = await query.getSingle();
     return result.read(countExp) ?? 0;
   }
 }
+
+@DriftAccessor(tables: [Lots])
+class LotDao extends DatabaseAccessor<AppDatabase> with _$LotDaoMixin {
+  LotDao(AppDatabase db) : super(db);
+
+  Stream<List<Lot>> watchLotsForProduct(String productId) {
+    return (select(lots)..where((l) => l.productId.equals(productId))).watch();
+  }
+
+  Future<void> insertLot(Lot lot) => into(lots).insert(lot);
+  Future<bool> updateLot(Lot lot) => update(lots).replace(lot);
+  Future<int> deleteLot(String id) => (delete(lots)..where((l) => l.id.equals(id))).go();
+}
+
 
 @DriftAccessor(tables: [Suppliers])
 class SupplierDao extends DatabaseAccessor<AppDatabase> with _$SupplierDaoMixin {

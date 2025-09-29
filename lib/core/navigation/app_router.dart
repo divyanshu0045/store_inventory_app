@@ -7,6 +7,7 @@ import 'package:inventory_management_app/features/auth/presentation/providers/au
 import 'package:inventory_management_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:inventory_management_app/features/auth/presentation/screens/signup_screen.dart';
 import 'package:inventory_management_app/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:inventory_management_app/features/inventory/presentation/screens/add_lot_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/add_product_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/inventory_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/add_stock_transaction_screen.dart';
@@ -25,16 +26,12 @@ import 'package:inventory_management_app/widgets/scaffold_with_nested_navigation
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  // Listen to the auth state for redirection logic
   final authState = ref.watch(authStateStreamProvider);
-  // Get the auth repository to access the raw stream for the refreshListenable
   final authRepository = ref.watch(authRepositoryProvider);
 
   return GoRouter(
     initialLocation: '/login',
     navigatorKey: _rootNavigatorKey,
-    // The refreshListenable needs a stream, not the AsyncValue.
-    // We get it from the repository directly.
     refreshListenable: GoRouterRefreshStream(authRepository.currentUser),
     redirect: (BuildContext context, GoRouterState state) {
       final bool loggedIn = authState.asData?.value != null;
@@ -135,6 +132,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final product = state.extra as db.Product;
           return AddStockTransactionScreen(product: product);
+        },
+      ),
+       GoRoute(
+        path: '/add-lot',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final product = state.extra as db.Product;
+          return AddLotScreen(product: product);
         },
       ),
       GoRoute(

@@ -24,3 +24,8 @@ final stockTransactionDaoProvider = Provider<StockTransactionDao>((ref) {
   final db = ref.watch(databaseProvider);
   return db.stockTransactionDao;
 });
+
+final lotDaoProvider = Provider<LotDao>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.lotDao;
+});

@@ -91,12 +91,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       documentUrls = GeneratedColumn<String>('document_urls', aliasedName, true,
               type: DriftSqlType.string, requiredDuringInsert: false)
           .withConverter<List<String>?>($ProductsTable.$converterdocumentUrlsn);
-  static const VerificationMeta _expiryDateMeta =
-      const VerificationMeta('expiryDate');
-  @override
-  late final GeneratedColumn<DateTime> expiryDate = GeneratedColumn<DateTime>(
-      'expiry_date', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -113,8 +107,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         cost,
         sellingPrice,
         imageUrls,
-        documentUrls,
-        expiryDate
+        documentUrls
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -191,12 +184,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           sellingPrice.isAcceptableOrUnknown(
               data['selling_price']!, _sellingPriceMeta));
     }
-    if (data.containsKey('expiry_date')) {
-      context.handle(
-          _expiryDateMeta,
-          expiryDate.isAcceptableOrUnknown(
-              data['expiry_date']!, _expiryDateMeta));
-    }
     return context;
   }
 
@@ -239,8 +226,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       documentUrls: $ProductsTable.$converterdocumentUrlsn.fromSql(
           attachedDatabase.typeMapping.read(
               DriftSqlType.string, data['${effectivePrefix}document_urls'])),
-      expiryDate: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}expiry_date']),
     );
   }
 
@@ -277,7 +262,6 @@ class Product extends DataClass implements Insertable<Product> {
   final double? sellingPrice;
   final List<String>? imageUrls;
   final List<String>? documentUrls;
-  final DateTime? expiryDate;
   const Product(
       {required this.id,
       required this.name,
@@ -293,8 +277,7 @@ class Product extends DataClass implements Insertable<Product> {
       this.cost,
       this.sellingPrice,
       this.imageUrls,
-      this.documentUrls,
-      this.expiryDate});
+      this.documentUrls});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -338,9 +321,6 @@ class Product extends DataClass implements Insertable<Product> {
       map['document_urls'] = Variable<String>(
           $ProductsTable.$converterdocumentUrlsn.toSql(documentUrls));
     }
-    if (!nullToAbsent || expiryDate != null) {
-      map['expiry_date'] = Variable<DateTime>(expiryDate);
-    }
     return map;
   }
 
@@ -379,9 +359,6 @@ class Product extends DataClass implements Insertable<Product> {
       documentUrls: documentUrls == null && nullToAbsent
           ? const Value.absent()
           : Value(documentUrls),
-      expiryDate: expiryDate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(expiryDate),
     );
   }
 
@@ -406,7 +383,6 @@ class Product extends DataClass implements Insertable<Product> {
       sellingPrice: serializer.fromJson<double?>(json['sellingPrice']),
       imageUrls: serializer.fromJson<List<String>?>(json['imageUrls']),
       documentUrls: serializer.fromJson<List<String>?>(json['documentUrls']),
-      expiryDate: serializer.fromJson<DateTime?>(json['expiryDate']),
     );
   }
   @override
@@ -429,7 +405,6 @@ class Product extends DataClass implements Insertable<Product> {
       'sellingPrice': serializer.toJson<double?>(sellingPrice),
       'imageUrls': serializer.toJson<List<String>?>(imageUrls),
       'documentUrls': serializer.toJson<List<String>?>(documentUrls),
-      'expiryDate': serializer.toJson<DateTime?>(expiryDate),
     };
   }
 
@@ -448,8 +423,7 @@ class Product extends DataClass implements Insertable<Product> {
           Value<double?> cost = const Value.absent(),
           Value<double?> sellingPrice = const Value.absent(),
           Value<List<String>?> imageUrls = const Value.absent(),
-          Value<List<String>?> documentUrls = const Value.absent(),
-          Value<DateTime?> expiryDate = const Value.absent()}) =>
+          Value<List<String>?> documentUrls = const Value.absent()}) =>
       Product(
         id: id ?? this.id,
         name: name ?? this.name,
@@ -470,7 +444,6 @@ class Product extends DataClass implements Insertable<Product> {
         imageUrls: imageUrls.present ? imageUrls.value : this.imageUrls,
         documentUrls:
             documentUrls.present ? documentUrls.value : this.documentUrls,
-        expiryDate: expiryDate.present ? expiryDate.value : this.expiryDate,
       );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -500,8 +473,6 @@ class Product extends DataClass implements Insertable<Product> {
       documentUrls: data.documentUrls.present
           ? data.documentUrls.value
           : this.documentUrls,
-      expiryDate:
-          data.expiryDate.present ? data.expiryDate.value : this.expiryDate,
     );
   }
 
@@ -522,8 +493,7 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('cost: $cost, ')
           ..write('sellingPrice: $sellingPrice, ')
           ..write('imageUrls: $imageUrls, ')
-          ..write('documentUrls: $documentUrls, ')
-          ..write('expiryDate: $expiryDate')
+          ..write('documentUrls: $documentUrls')
           ..write(')'))
         .toString();
   }
@@ -544,8 +514,7 @@ class Product extends DataClass implements Insertable<Product> {
       cost,
       sellingPrice,
       imageUrls,
-      documentUrls,
-      expiryDate);
+      documentUrls);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -564,8 +533,7 @@ class Product extends DataClass implements Insertable<Product> {
           other.cost == this.cost &&
           other.sellingPrice == this.sellingPrice &&
           other.imageUrls == this.imageUrls &&
-          other.documentUrls == this.documentUrls &&
-          other.expiryDate == this.expiryDate);
+          other.documentUrls == this.documentUrls);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -584,7 +552,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<double?> sellingPrice;
   final Value<List<String>?> imageUrls;
   final Value<List<String>?> documentUrls;
-  final Value<DateTime?> expiryDate;
   final Value<int> rowid;
   const ProductsCompanion({
     this.id = const Value.absent(),
@@ -602,7 +569,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.sellingPrice = const Value.absent(),
     this.imageUrls = const Value.absent(),
     this.documentUrls = const Value.absent(),
-    this.expiryDate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductsCompanion.insert({
@@ -621,7 +587,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.sellingPrice = const Value.absent(),
     this.imageUrls = const Value.absent(),
     this.documentUrls = const Value.absent(),
-    this.expiryDate = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         name = Value(name),
@@ -644,7 +609,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<double>? sellingPrice,
     Expression<String>? imageUrls,
     Expression<String>? documentUrls,
-    Expression<DateTime>? expiryDate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -664,7 +628,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (sellingPrice != null) 'selling_price': sellingPrice,
       if (imageUrls != null) 'image_urls': imageUrls,
       if (documentUrls != null) 'document_urls': documentUrls,
-      if (expiryDate != null) 'expiry_date': expiryDate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -685,7 +648,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<double?>? sellingPrice,
       Value<List<String>?>? imageUrls,
       Value<List<String>?>? documentUrls,
-      Value<DateTime?>? expiryDate,
       Value<int>? rowid}) {
     return ProductsCompanion(
       id: id ?? this.id,
@@ -704,7 +666,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       sellingPrice: sellingPrice ?? this.sellingPrice,
       imageUrls: imageUrls ?? this.imageUrls,
       documentUrls: documentUrls ?? this.documentUrls,
-      expiryDate: expiryDate ?? this.expiryDate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -761,9 +722,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       map['document_urls'] = Variable<String>(
           $ProductsTable.$converterdocumentUrlsn.toSql(documentUrls.value));
     }
-    if (expiryDate.present) {
-      map['expiry_date'] = Variable<DateTime>(expiryDate.value);
-    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -788,7 +746,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('sellingPrice: $sellingPrice, ')
           ..write('imageUrls: $imageUrls, ')
           ..write('documentUrls: $documentUrls, ')
-          ..write('expiryDate: $expiryDate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1369,6 +1326,325 @@ class UsersCompanion extends UpdateCompanion<User> {
   }
 }
 
+class $LotsTable extends Lots with TableInfo<$LotsTable, Lot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _productIdMeta =
+      const VerificationMeta('productId');
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>(
+      'product_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES products (id)'));
+  static const VerificationMeta _batchNumberMeta =
+      const VerificationMeta('batchNumber');
+  @override
+  late final GeneratedColumn<String> batchNumber = GeneratedColumn<String>(
+      'batch_number', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _quantityMeta =
+      const VerificationMeta('quantity');
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+      'quantity', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _expiryDateMeta =
+      const VerificationMeta('expiryDate');
+  @override
+  late final GeneratedColumn<DateTime> expiryDate = GeneratedColumn<DateTime>(
+      'expiry_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, productId, batchNumber, quantity, expiryDate];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'lots';
+  @override
+  VerificationContext validateIntegrity(Insertable<Lot> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(_productIdMeta,
+          productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta));
+    } else if (isInserting) {
+      context.missing(_productIdMeta);
+    }
+    if (data.containsKey('batch_number')) {
+      context.handle(
+          _batchNumberMeta,
+          batchNumber.isAcceptableOrUnknown(
+              data['batch_number']!, _batchNumberMeta));
+    } else if (isInserting) {
+      context.missing(_batchNumberMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(_quantityMeta,
+          quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta));
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('expiry_date')) {
+      context.handle(
+          _expiryDateMeta,
+          expiryDate.isAcceptableOrUnknown(
+              data['expiry_date']!, _expiryDateMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Lot map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Lot(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      productId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}product_id'])!,
+      batchNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}batch_number'])!,
+      quantity: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}quantity'])!,
+      expiryDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}expiry_date']),
+    );
+  }
+
+  @override
+  $LotsTable createAlias(String alias) {
+    return $LotsTable(attachedDatabase, alias);
+  }
+}
+
+class Lot extends DataClass implements Insertable<Lot> {
+  final String id;
+  final String productId;
+  final String batchNumber;
+  final int quantity;
+  final DateTime? expiryDate;
+  const Lot(
+      {required this.id,
+      required this.productId,
+      required this.batchNumber,
+      required this.quantity,
+      this.expiryDate});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['product_id'] = Variable<String>(productId);
+    map['batch_number'] = Variable<String>(batchNumber);
+    map['quantity'] = Variable<int>(quantity);
+    if (!nullToAbsent || expiryDate != null) {
+      map['expiry_date'] = Variable<DateTime>(expiryDate);
+    }
+    return map;
+  }
+
+  LotsCompanion toCompanion(bool nullToAbsent) {
+    return LotsCompanion(
+      id: Value(id),
+      productId: Value(productId),
+      batchNumber: Value(batchNumber),
+      quantity: Value(quantity),
+      expiryDate: expiryDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiryDate),
+    );
+  }
+
+  factory Lot.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Lot(
+      id: serializer.fromJson<String>(json['id']),
+      productId: serializer.fromJson<String>(json['productId']),
+      batchNumber: serializer.fromJson<String>(json['batchNumber']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+      expiryDate: serializer.fromJson<DateTime?>(json['expiryDate']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'productId': serializer.toJson<String>(productId),
+      'batchNumber': serializer.toJson<String>(batchNumber),
+      'quantity': serializer.toJson<int>(quantity),
+      'expiryDate': serializer.toJson<DateTime?>(expiryDate),
+    };
+  }
+
+  Lot copyWith(
+          {String? id,
+          String? productId,
+          String? batchNumber,
+          int? quantity,
+          Value<DateTime?> expiryDate = const Value.absent()}) =>
+      Lot(
+        id: id ?? this.id,
+        productId: productId ?? this.productId,
+        batchNumber: batchNumber ?? this.batchNumber,
+        quantity: quantity ?? this.quantity,
+        expiryDate: expiryDate.present ? expiryDate.value : this.expiryDate,
+      );
+  Lot copyWithCompanion(LotsCompanion data) {
+    return Lot(
+      id: data.id.present ? data.id.value : this.id,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      batchNumber:
+          data.batchNumber.present ? data.batchNumber.value : this.batchNumber,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      expiryDate:
+          data.expiryDate.present ? data.expiryDate.value : this.expiryDate,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Lot(')
+          ..write('id: $id, ')
+          ..write('productId: $productId, ')
+          ..write('batchNumber: $batchNumber, ')
+          ..write('quantity: $quantity, ')
+          ..write('expiryDate: $expiryDate')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, productId, batchNumber, quantity, expiryDate);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Lot &&
+          other.id == this.id &&
+          other.productId == this.productId &&
+          other.batchNumber == this.batchNumber &&
+          other.quantity == this.quantity &&
+          other.expiryDate == this.expiryDate);
+}
+
+class LotsCompanion extends UpdateCompanion<Lot> {
+  final Value<String> id;
+  final Value<String> productId;
+  final Value<String> batchNumber;
+  final Value<int> quantity;
+  final Value<DateTime?> expiryDate;
+  final Value<int> rowid;
+  const LotsCompanion({
+    this.id = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.batchNumber = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.expiryDate = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LotsCompanion.insert({
+    required String id,
+    required String productId,
+    required String batchNumber,
+    required int quantity,
+    this.expiryDate = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        productId = Value(productId),
+        batchNumber = Value(batchNumber),
+        quantity = Value(quantity);
+  static Insertable<Lot> custom({
+    Expression<String>? id,
+    Expression<String>? productId,
+    Expression<String>? batchNumber,
+    Expression<int>? quantity,
+    Expression<DateTime>? expiryDate,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (productId != null) 'product_id': productId,
+      if (batchNumber != null) 'batch_number': batchNumber,
+      if (quantity != null) 'quantity': quantity,
+      if (expiryDate != null) 'expiry_date': expiryDate,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LotsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? productId,
+      Value<String>? batchNumber,
+      Value<int>? quantity,
+      Value<DateTime?>? expiryDate,
+      Value<int>? rowid}) {
+    return LotsCompanion(
+      id: id ?? this.id,
+      productId: productId ?? this.productId,
+      batchNumber: batchNumber ?? this.batchNumber,
+      quantity: quantity ?? this.quantity,
+      expiryDate: expiryDate ?? this.expiryDate,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (batchNumber.present) {
+      map['batch_number'] = Variable<String>(batchNumber.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (expiryDate.present) {
+      map['expiry_date'] = Variable<DateTime>(expiryDate.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LotsCompanion(')
+          ..write('id: $id, ')
+          ..write('productId: $productId, ')
+          ..write('batchNumber: $batchNumber, ')
+          ..write('quantity: $quantity, ')
+          ..write('expiryDate: $expiryDate, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StockTransactionsTable extends StockTransactions
     with TableInfo<$StockTransactionsTable, StockTransaction> {
   @override
@@ -1386,6 +1662,14 @@ class $StockTransactionsTable extends StockTransactions
   late final GeneratedColumn<String> productId = GeneratedColumn<String>(
       'product_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lotIdMeta = const VerificationMeta('lotId');
+  @override
+  late final GeneratedColumn<String> lotId = GeneratedColumn<String>(
+      'lot_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES lots (id)'));
   @override
   late final GeneratedColumnWithTypeConverter<TransactionType, int> type =
       GeneratedColumn<int>('type', aliasedName, false,
@@ -1411,7 +1695,7 @@ class $StockTransactionsTable extends StockTransactions
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, productId, type, quantity, timestamp, reason];
+      [id, productId, lotId, type, quantity, timestamp, reason];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1432,6 +1716,10 @@ class $StockTransactionsTable extends StockTransactions
           productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta));
     } else if (isInserting) {
       context.missing(_productIdMeta);
+    }
+    if (data.containsKey('lot_id')) {
+      context.handle(
+          _lotIdMeta, lotId.isAcceptableOrUnknown(data['lot_id']!, _lotIdMeta));
     }
     if (data.containsKey('quantity')) {
       context.handle(_quantityMeta,
@@ -1462,6 +1750,8 @@ class $StockTransactionsTable extends StockTransactions
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       productId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}product_id'])!,
+      lotId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}lot_id']),
       type: $StockTransactionsTable.$convertertype.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}type'])!),
@@ -1487,6 +1777,7 @@ class StockTransaction extends DataClass
     implements Insertable<StockTransaction> {
   final String id;
   final String productId;
+  final String? lotId;
   final TransactionType type;
   final int quantity;
   final DateTime timestamp;
@@ -1494,6 +1785,7 @@ class StockTransaction extends DataClass
   const StockTransaction(
       {required this.id,
       required this.productId,
+      this.lotId,
       required this.type,
       required this.quantity,
       required this.timestamp,
@@ -1503,6 +1795,9 @@ class StockTransaction extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['product_id'] = Variable<String>(productId);
+    if (!nullToAbsent || lotId != null) {
+      map['lot_id'] = Variable<String>(lotId);
+    }
     {
       map['type'] =
           Variable<int>($StockTransactionsTable.$convertertype.toSql(type));
@@ -1519,6 +1814,8 @@ class StockTransaction extends DataClass
     return StockTransactionsCompanion(
       id: Value(id),
       productId: Value(productId),
+      lotId:
+          lotId == null && nullToAbsent ? const Value.absent() : Value(lotId),
       type: Value(type),
       quantity: Value(quantity),
       timestamp: Value(timestamp),
@@ -1533,6 +1830,7 @@ class StockTransaction extends DataClass
     return StockTransaction(
       id: serializer.fromJson<String>(json['id']),
       productId: serializer.fromJson<String>(json['productId']),
+      lotId: serializer.fromJson<String?>(json['lotId']),
       type: $StockTransactionsTable.$convertertype
           .fromJson(serializer.fromJson<int>(json['type'])),
       quantity: serializer.fromJson<int>(json['quantity']),
@@ -1546,6 +1844,7 @@ class StockTransaction extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'productId': serializer.toJson<String>(productId),
+      'lotId': serializer.toJson<String?>(lotId),
       'type': serializer
           .toJson<int>($StockTransactionsTable.$convertertype.toJson(type)),
       'quantity': serializer.toJson<int>(quantity),
@@ -1557,6 +1856,7 @@ class StockTransaction extends DataClass
   StockTransaction copyWith(
           {String? id,
           String? productId,
+          Value<String?> lotId = const Value.absent(),
           TransactionType? type,
           int? quantity,
           DateTime? timestamp,
@@ -1564,6 +1864,7 @@ class StockTransaction extends DataClass
       StockTransaction(
         id: id ?? this.id,
         productId: productId ?? this.productId,
+        lotId: lotId.present ? lotId.value : this.lotId,
         type: type ?? this.type,
         quantity: quantity ?? this.quantity,
         timestamp: timestamp ?? this.timestamp,
@@ -1573,6 +1874,7 @@ class StockTransaction extends DataClass
     return StockTransaction(
       id: data.id.present ? data.id.value : this.id,
       productId: data.productId.present ? data.productId.value : this.productId,
+      lotId: data.lotId.present ? data.lotId.value : this.lotId,
       type: data.type.present ? data.type.value : this.type,
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
       timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
@@ -1585,6 +1887,7 @@ class StockTransaction extends DataClass
     return (StringBuffer('StockTransaction(')
           ..write('id: $id, ')
           ..write('productId: $productId, ')
+          ..write('lotId: $lotId, ')
           ..write('type: $type, ')
           ..write('quantity: $quantity, ')
           ..write('timestamp: $timestamp, ')
@@ -1595,13 +1898,14 @@ class StockTransaction extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(id, productId, type, quantity, timestamp, reason);
+      Object.hash(id, productId, lotId, type, quantity, timestamp, reason);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is StockTransaction &&
           other.id == this.id &&
           other.productId == this.productId &&
+          other.lotId == this.lotId &&
           other.type == this.type &&
           other.quantity == this.quantity &&
           other.timestamp == this.timestamp &&
@@ -1611,6 +1915,7 @@ class StockTransaction extends DataClass
 class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
   final Value<String> id;
   final Value<String> productId;
+  final Value<String?> lotId;
   final Value<TransactionType> type;
   final Value<int> quantity;
   final Value<DateTime> timestamp;
@@ -1619,6 +1924,7 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
   const StockTransactionsCompanion({
     this.id = const Value.absent(),
     this.productId = const Value.absent(),
+    this.lotId = const Value.absent(),
     this.type = const Value.absent(),
     this.quantity = const Value.absent(),
     this.timestamp = const Value.absent(),
@@ -1628,6 +1934,7 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
   StockTransactionsCompanion.insert({
     required String id,
     required String productId,
+    this.lotId = const Value.absent(),
     required TransactionType type,
     required int quantity,
     required DateTime timestamp,
@@ -1641,6 +1948,7 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
   static Insertable<StockTransaction> custom({
     Expression<String>? id,
     Expression<String>? productId,
+    Expression<String>? lotId,
     Expression<int>? type,
     Expression<int>? quantity,
     Expression<DateTime>? timestamp,
@@ -1650,6 +1958,7 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (productId != null) 'product_id': productId,
+      if (lotId != null) 'lot_id': lotId,
       if (type != null) 'type': type,
       if (quantity != null) 'quantity': quantity,
       if (timestamp != null) 'timestamp': timestamp,
@@ -1661,6 +1970,7 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
   StockTransactionsCompanion copyWith(
       {Value<String>? id,
       Value<String>? productId,
+      Value<String?>? lotId,
       Value<TransactionType>? type,
       Value<int>? quantity,
       Value<DateTime>? timestamp,
@@ -1669,6 +1979,7 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
     return StockTransactionsCompanion(
       id: id ?? this.id,
       productId: productId ?? this.productId,
+      lotId: lotId ?? this.lotId,
       type: type ?? this.type,
       quantity: quantity ?? this.quantity,
       timestamp: timestamp ?? this.timestamp,
@@ -1685,6 +1996,9 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
     }
     if (productId.present) {
       map['product_id'] = Variable<String>(productId.value);
+    }
+    if (lotId.present) {
+      map['lot_id'] = Variable<String>(lotId.value);
     }
     if (type.present) {
       map['type'] = Variable<int>(
@@ -1710,6 +2024,7 @@ class StockTransactionsCompanion extends UpdateCompanion<StockTransaction> {
     return (StringBuffer('StockTransactionsCompanion(')
           ..write('id: $id, ')
           ..write('productId: $productId, ')
+          ..write('lotId: $lotId, ')
           ..write('type: $type, ')
           ..write('quantity: $quantity, ')
           ..write('timestamp: $timestamp, ')
@@ -1726,6 +2041,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ProductsTable products = $ProductsTable(this);
   late final $SuppliersTable suppliers = $SuppliersTable(this);
   late final $UsersTable users = $UsersTable(this);
+  late final $LotsTable lots = $LotsTable(this);
   late final $StockTransactionsTable stockTransactions =
       $StockTransactionsTable(this);
   late final ProductDao productDao = ProductDao(this as AppDatabase);
@@ -1733,12 +2049,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final UserDao userDao = UserDao(this as AppDatabase);
   late final StockTransactionDao stockTransactionDao =
       StockTransactionDao(this as AppDatabase);
+  late final LotDao lotDao = LotDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [products, suppliers, users, stockTransactions];
+      [products, suppliers, users, lots, stockTransactions];
 }
 
 typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
@@ -1757,7 +2074,6 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<double?> sellingPrice,
   Value<List<String>?> imageUrls,
   Value<List<String>?> documentUrls,
-  Value<DateTime?> expiryDate,
   Value<int> rowid,
 });
 typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
@@ -1776,9 +2092,27 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<double?> sellingPrice,
   Value<List<String>?> imageUrls,
   Value<List<String>?> documentUrls,
-  Value<DateTime?> expiryDate,
   Value<int> rowid,
 });
+
+final class $$ProductsTableReferences
+    extends BaseReferences<_$AppDatabase, $ProductsTable, Product> {
+  $$ProductsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$LotsTable, List<Lot>> _lotsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.lots,
+          aliasName: $_aliasNameGenerator(db.products.id, db.lots.productId));
+
+  $$LotsTableProcessedTableManager get lotsRefs {
+    final manager = $$LotsTableTableManager($_db, $_db.lots)
+        .filter((f) => f.productId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_lotsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$ProductsTableFilterComposer
     extends Composer<_$AppDatabase, $ProductsTable> {
@@ -1841,8 +2175,26 @@ class $$ProductsTableFilterComposer
           column: $table.documentUrls,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
-  ColumnFilters<DateTime> get expiryDate => $composableBuilder(
-      column: $table.expiryDate, builder: (column) => ColumnFilters(column));
+  Expression<bool> lotsRefs(
+      Expression<bool> Function($$LotsTableFilterComposer f) f) {
+    final $$LotsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.lots,
+        getReferencedColumn: (t) => t.productId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LotsTableFilterComposer(
+              $db: $db,
+              $table: $db.lots,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ProductsTableOrderingComposer
@@ -1902,9 +2254,6 @@ class $$ProductsTableOrderingComposer
   ColumnOrderings<String> get documentUrls => $composableBuilder(
       column: $table.documentUrls,
       builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get expiryDate => $composableBuilder(
-      column: $table.expiryDate, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ProductsTableAnnotationComposer
@@ -1963,8 +2312,26 @@ class $$ProductsTableAnnotationComposer
       $composableBuilder(
           column: $table.documentUrls, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get expiryDate => $composableBuilder(
-      column: $table.expiryDate, builder: (column) => column);
+  Expression<T> lotsRefs<T extends Object>(
+      Expression<T> Function($$LotsTableAnnotationComposer a) f) {
+    final $$LotsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.lots,
+        getReferencedColumn: (t) => t.productId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LotsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.lots,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ProductsTableTableManager extends RootTableManager<
@@ -1976,9 +2343,9 @@ class $$ProductsTableTableManager extends RootTableManager<
     $$ProductsTableAnnotationComposer,
     $$ProductsTableCreateCompanionBuilder,
     $$ProductsTableUpdateCompanionBuilder,
-    (Product, BaseReferences<_$AppDatabase, $ProductsTable, Product>),
+    (Product, $$ProductsTableReferences),
     Product,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool lotsRefs})> {
   $$ProductsTableTableManager(_$AppDatabase db, $ProductsTable table)
       : super(TableManagerState(
           db: db,
@@ -2005,7 +2372,6 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<double?> sellingPrice = const Value.absent(),
             Value<List<String>?> imageUrls = const Value.absent(),
             Value<List<String>?> documentUrls = const Value.absent(),
-            Value<DateTime?> expiryDate = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion(
@@ -2024,7 +2390,6 @@ class $$ProductsTableTableManager extends RootTableManager<
             sellingPrice: sellingPrice,
             imageUrls: imageUrls,
             documentUrls: documentUrls,
-            expiryDate: expiryDate,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2043,7 +2408,6 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<double?> sellingPrice = const Value.absent(),
             Value<List<String>?> imageUrls = const Value.absent(),
             Value<List<String>?> documentUrls = const Value.absent(),
-            Value<DateTime?> expiryDate = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion.insert(
@@ -2062,13 +2426,34 @@ class $$ProductsTableTableManager extends RootTableManager<
             sellingPrice: sellingPrice,
             imageUrls: imageUrls,
             documentUrls: documentUrls,
-            expiryDate: expiryDate,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) =>
+                  (e.readTable(table), $$ProductsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({lotsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (lotsRefs) db.lots],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (lotsRefs)
+                    await $_getPrefetchedData<Product, $ProductsTable, Lot>(
+                        currentTable: table,
+                        referencedTable:
+                            $$ProductsTableReferences._lotsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ProductsTableReferences(db, table, p0).lotsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.productId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -2081,9 +2466,9 @@ typedef $$ProductsTableProcessedTableManager = ProcessedTableManager<
     $$ProductsTableAnnotationComposer,
     $$ProductsTableCreateCompanionBuilder,
     $$ProductsTableUpdateCompanionBuilder,
-    (Product, BaseReferences<_$AppDatabase, $ProductsTable, Product>),
+    (Product, $$ProductsTableReferences),
     Product,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool lotsRefs})>;
 typedef $$SuppliersTableCreateCompanionBuilder = SuppliersCompanion Function({
   required String id,
   required String name,
@@ -2400,10 +2785,355 @@ typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
     (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
     User,
     PrefetchHooks Function()>;
+typedef $$LotsTableCreateCompanionBuilder = LotsCompanion Function({
+  required String id,
+  required String productId,
+  required String batchNumber,
+  required int quantity,
+  Value<DateTime?> expiryDate,
+  Value<int> rowid,
+});
+typedef $$LotsTableUpdateCompanionBuilder = LotsCompanion Function({
+  Value<String> id,
+  Value<String> productId,
+  Value<String> batchNumber,
+  Value<int> quantity,
+  Value<DateTime?> expiryDate,
+  Value<int> rowid,
+});
+
+final class $$LotsTableReferences
+    extends BaseReferences<_$AppDatabase, $LotsTable, Lot> {
+  $$LotsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProductsTable _productIdTable(_$AppDatabase db) => db.products
+      .createAlias($_aliasNameGenerator(db.lots.productId, db.products.id));
+
+  $$ProductsTableProcessedTableManager get productId {
+    final $_column = $_itemColumn<String>('product_id')!;
+
+    final manager = $$ProductsTableTableManager($_db, $_db.products)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_productIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$StockTransactionsTable, List<StockTransaction>>
+      _stockTransactionsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.stockTransactions,
+              aliasName:
+                  $_aliasNameGenerator(db.lots.id, db.stockTransactions.lotId));
+
+  $$StockTransactionsTableProcessedTableManager get stockTransactionsRefs {
+    final manager =
+        $$StockTransactionsTableTableManager($_db, $_db.stockTransactions)
+            .filter((f) => f.lotId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_stockTransactionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$LotsTableFilterComposer extends Composer<_$AppDatabase, $LotsTable> {
+  $$LotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get batchNumber => $composableBuilder(
+      column: $table.batchNumber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+      column: $table.quantity, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get expiryDate => $composableBuilder(
+      column: $table.expiryDate, builder: (column) => ColumnFilters(column));
+
+  $$ProductsTableFilterComposer get productId {
+    final $$ProductsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableFilterComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> stockTransactionsRefs(
+      Expression<bool> Function($$StockTransactionsTableFilterComposer f) f) {
+    final $$StockTransactionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stockTransactions,
+        getReferencedColumn: (t) => t.lotId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StockTransactionsTableFilterComposer(
+              $db: $db,
+              $table: $db.stockTransactions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$LotsTableOrderingComposer extends Composer<_$AppDatabase, $LotsTable> {
+  $$LotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get batchNumber => $composableBuilder(
+      column: $table.batchNumber, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+      column: $table.quantity, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get expiryDate => $composableBuilder(
+      column: $table.expiryDate, builder: (column) => ColumnOrderings(column));
+
+  $$ProductsTableOrderingComposer get productId {
+    final $$ProductsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableOrderingComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$LotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LotsTable> {
+  $$LotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get batchNumber => $composableBuilder(
+      column: $table.batchNumber, builder: (column) => column);
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiryDate => $composableBuilder(
+      column: $table.expiryDate, builder: (column) => column);
+
+  $$ProductsTableAnnotationComposer get productId {
+    final $$ProductsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> stockTransactionsRefs<T extends Object>(
+      Expression<T> Function($$StockTransactionsTableAnnotationComposer a) f) {
+    final $$StockTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.stockTransactions,
+            getReferencedColumn: (t) => t.lotId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$StockTransactionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.stockTransactions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$LotsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $LotsTable,
+    Lot,
+    $$LotsTableFilterComposer,
+    $$LotsTableOrderingComposer,
+    $$LotsTableAnnotationComposer,
+    $$LotsTableCreateCompanionBuilder,
+    $$LotsTableUpdateCompanionBuilder,
+    (Lot, $$LotsTableReferences),
+    Lot,
+    PrefetchHooks Function({bool productId, bool stockTransactionsRefs})> {
+  $$LotsTableTableManager(_$AppDatabase db, $LotsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LotsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> productId = const Value.absent(),
+            Value<String> batchNumber = const Value.absent(),
+            Value<int> quantity = const Value.absent(),
+            Value<DateTime?> expiryDate = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LotsCompanion(
+            id: id,
+            productId: productId,
+            batchNumber: batchNumber,
+            quantity: quantity,
+            expiryDate: expiryDate,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String productId,
+            required String batchNumber,
+            required int quantity,
+            Value<DateTime?> expiryDate = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              LotsCompanion.insert(
+            id: id,
+            productId: productId,
+            batchNumber: batchNumber,
+            quantity: quantity,
+            expiryDate: expiryDate,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) =>
+                  (e.readTable(table), $$LotsTableReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: (
+              {productId = false, stockTransactionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (stockTransactionsRefs) db.stockTransactions
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (productId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.productId,
+                    referencedTable: $$LotsTableReferences._productIdTable(db),
+                    referencedColumn:
+                        $$LotsTableReferences._productIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (stockTransactionsRefs)
+                    await $_getPrefetchedData<Lot, $LotsTable,
+                            StockTransaction>(
+                        currentTable: table,
+                        referencedTable: $$LotsTableReferences
+                            ._stockTransactionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$LotsTableReferences(db, table, p0)
+                                .stockTransactionsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.lotId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$LotsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $LotsTable,
+    Lot,
+    $$LotsTableFilterComposer,
+    $$LotsTableOrderingComposer,
+    $$LotsTableAnnotationComposer,
+    $$LotsTableCreateCompanionBuilder,
+    $$LotsTableUpdateCompanionBuilder,
+    (Lot, $$LotsTableReferences),
+    Lot,
+    PrefetchHooks Function({bool productId, bool stockTransactionsRefs})>;
 typedef $$StockTransactionsTableCreateCompanionBuilder
     = StockTransactionsCompanion Function({
   required String id,
   required String productId,
+  Value<String?> lotId,
   required TransactionType type,
   required int quantity,
   required DateTime timestamp,
@@ -2414,12 +3144,33 @@ typedef $$StockTransactionsTableUpdateCompanionBuilder
     = StockTransactionsCompanion Function({
   Value<String> id,
   Value<String> productId,
+  Value<String?> lotId,
   Value<TransactionType> type,
   Value<int> quantity,
   Value<DateTime> timestamp,
   Value<String?> reason,
   Value<int> rowid,
 });
+
+final class $$StockTransactionsTableReferences extends BaseReferences<
+    _$AppDatabase, $StockTransactionsTable, StockTransaction> {
+  $$StockTransactionsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $LotsTable _lotIdTable(_$AppDatabase db) => db.lots.createAlias(
+      $_aliasNameGenerator(db.stockTransactions.lotId, db.lots.id));
+
+  $$LotsTableProcessedTableManager? get lotId {
+    final $_column = $_itemColumn<String>('lot_id');
+    if ($_column == null) return null;
+    final manager = $$LotsTableTableManager($_db, $_db.lots)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_lotIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
 
 class $$StockTransactionsTableFilterComposer
     extends Composer<_$AppDatabase, $StockTransactionsTable> {
@@ -2449,6 +3200,26 @@ class $$StockTransactionsTableFilterComposer
 
   ColumnFilters<String> get reason => $composableBuilder(
       column: $table.reason, builder: (column) => ColumnFilters(column));
+
+  $$LotsTableFilterComposer get lotId {
+    final $$LotsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.lotId,
+        referencedTable: $db.lots,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LotsTableFilterComposer(
+              $db: $db,
+              $table: $db.lots,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$StockTransactionsTableOrderingComposer
@@ -2477,6 +3248,26 @@ class $$StockTransactionsTableOrderingComposer
 
   ColumnOrderings<String> get reason => $composableBuilder(
       column: $table.reason, builder: (column) => ColumnOrderings(column));
+
+  $$LotsTableOrderingComposer get lotId {
+    final $$LotsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.lotId,
+        referencedTable: $db.lots,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LotsTableOrderingComposer(
+              $db: $db,
+              $table: $db.lots,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$StockTransactionsTableAnnotationComposer
@@ -2505,6 +3296,26 @@ class $$StockTransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get reason =>
       $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  $$LotsTableAnnotationComposer get lotId {
+    final $$LotsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.lotId,
+        referencedTable: $db.lots,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LotsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.lots,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$StockTransactionsTableTableManager extends RootTableManager<
@@ -2516,12 +3327,9 @@ class $$StockTransactionsTableTableManager extends RootTableManager<
     $$StockTransactionsTableAnnotationComposer,
     $$StockTransactionsTableCreateCompanionBuilder,
     $$StockTransactionsTableUpdateCompanionBuilder,
-    (
-      StockTransaction,
-      BaseReferences<_$AppDatabase, $StockTransactionsTable, StockTransaction>
-    ),
+    (StockTransaction, $$StockTransactionsTableReferences),
     StockTransaction,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool lotId})> {
   $$StockTransactionsTableTableManager(
       _$AppDatabase db, $StockTransactionsTable table)
       : super(TableManagerState(
@@ -2537,6 +3345,7 @@ class $$StockTransactionsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> productId = const Value.absent(),
+            Value<String?> lotId = const Value.absent(),
             Value<TransactionType> type = const Value.absent(),
             Value<int> quantity = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
@@ -2546,6 +3355,7 @@ class $$StockTransactionsTableTableManager extends RootTableManager<
               StockTransactionsCompanion(
             id: id,
             productId: productId,
+            lotId: lotId,
             type: type,
             quantity: quantity,
             timestamp: timestamp,
@@ -2555,6 +3365,7 @@ class $$StockTransactionsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String productId,
+            Value<String?> lotId = const Value.absent(),
             required TransactionType type,
             required int quantity,
             required DateTime timestamp,
@@ -2564,6 +3375,7 @@ class $$StockTransactionsTableTableManager extends RootTableManager<
               StockTransactionsCompanion.insert(
             id: id,
             productId: productId,
+            lotId: lotId,
             type: type,
             quantity: quantity,
             timestamp: timestamp,
@@ -2571,9 +3383,46 @@ class $$StockTransactionsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$StockTransactionsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({lotId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (lotId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.lotId,
+                    referencedTable:
+                        $$StockTransactionsTableReferences._lotIdTable(db),
+                    referencedColumn:
+                        $$StockTransactionsTableReferences._lotIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ));
 }
 
@@ -2586,12 +3435,9 @@ typedef $$StockTransactionsTableProcessedTableManager = ProcessedTableManager<
     $$StockTransactionsTableAnnotationComposer,
     $$StockTransactionsTableCreateCompanionBuilder,
     $$StockTransactionsTableUpdateCompanionBuilder,
-    (
-      StockTransaction,
-      BaseReferences<_$AppDatabase, $StockTransactionsTable, StockTransaction>
-    ),
+    (StockTransaction, $$StockTransactionsTableReferences),
     StockTransaction,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool lotId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2602,12 +3448,14 @@ class $AppDatabaseManager {
       $$SuppliersTableTableManager(_db, _db.suppliers);
   $$UsersTableTableManager get users =>
       $$UsersTableTableManager(_db, _db.users);
+  $$LotsTableTableManager get lots => $$LotsTableTableManager(_db, _db.lots);
   $$StockTransactionsTableTableManager get stockTransactions =>
       $$StockTransactionsTableTableManager(_db, _db.stockTransactions);
 }
 
 mixin _$ProductDaoMixin on DatabaseAccessor<AppDatabase> {
   $ProductsTable get products => attachedDatabase.products;
+  $LotsTable get lots => attachedDatabase.lots;
 }
 mixin _$SupplierDaoMixin on DatabaseAccessor<AppDatabase> {
   $SuppliersTable get suppliers => attachedDatabase.suppliers;
@@ -2616,6 +3464,12 @@ mixin _$UserDaoMixin on DatabaseAccessor<AppDatabase> {
   $UsersTable get users => attachedDatabase.users;
 }
 mixin _$StockTransactionDaoMixin on DatabaseAccessor<AppDatabase> {
+  $ProductsTable get products => attachedDatabase.products;
+  $LotsTable get lots => attachedDatabase.lots;
   $StockTransactionsTable get stockTransactions =>
       attachedDatabase.stockTransactions;
+}
+mixin _$LotDaoMixin on DatabaseAccessor<AppDatabase> {
+  $ProductsTable get products => attachedDatabase.products;
+  $LotsTable get lots => attachedDatabase.lots;
 }

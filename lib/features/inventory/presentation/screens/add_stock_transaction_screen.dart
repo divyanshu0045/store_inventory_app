@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:inventory_management_app/core/errors/failures.dart';
 import 'package:inventory_management_app/data/datasources/local/database.dart' as db;
+import 'package:inventory_management_app/features/inventory/presentation/providers/lot_providers.dart';
 import 'package:inventory_management_app/features/inventory/presentation/providers/stock_transaction_providers.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,6 +21,7 @@ class _AddStockTransactionScreenState
     extends ConsumerState<AddStockTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
   db.TransactionType _selectedType = db.TransactionType.IN;
+  String? _selectedLotId;
   final _quantityController = TextEditingController();
   final _reasonController = TextEditingController();
 
@@ -32,10 +34,17 @@ class _AddStockTransactionScreenState
 
   Future<void> _saveTransaction() async {
     if (_formKey.currentState!.validate()) {
-      // The constructor for the data class expects the enum itself, not the index.
+      if (_selectedLotId == null && _selectedType != db.TransactionType.ADJUST) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a lot for IN/OUT transactions.')),
+        );
+        return;
+      }
+
       final newTransaction = db.StockTransaction(
         id: const Uuid().v4(),
         productId: widget.product.id,
+        lotId: _selectedLotId,
         type: _selectedType,
         quantity: int.parse(_quantityController.text),
         timestamp: DateTime.now(),
@@ -70,6 +79,8 @@ class _AddStockTransactionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final lotsAsyncValue = ref.watch(lotListStreamProvider(widget.product.id));
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Adjust Stock: ${widget.product.name}'),
@@ -101,6 +112,35 @@ class _AddStockTransactionScreenState
                 },
               ),
               const SizedBox(height: 16),
+              lotsAsyncValue.when(
+                data: (lots) {
+                  if (lots.isEmpty && _selectedType != db.TransactionType.ADJUST) {
+                    return const Text('This product has no lots. Please add a lot before creating a transaction.');
+                  }
+                  return DropdownButtonFormField<String>(
+                    value: _selectedLotId,
+                    decoration: const InputDecoration(
+                      labelText: 'Lot / Batch',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: lots
+                        .map((lot) => DropdownMenuItem(
+                              value: lot.id,
+                              child: Text(
+                                  'Batch: ${lot.batchNumber} (Qty: ${lot.quantity})'),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedLotId = value;
+                      });
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, s) => const Text('Could not load lots'),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _quantityController,
                 decoration: const InputDecoration(
@@ -109,10 +149,9 @@ class _AddStockTransactionScreenState
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a quantity';
-                  }
-                  if (int.tryParse(value) == null ||
+                  if (value == null ||
+                      value.isEmpty ||
+                      int.tryParse(value) == null ||
                       int.parse(value) <= 0) {
                     return 'Please enter a valid, positive number';
                   }

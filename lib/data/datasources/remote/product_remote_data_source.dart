@@ -7,9 +7,9 @@ abstract class ProductRemoteDataSource {
 }
 
 class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
-  final ApiClient _apiClient;
-
-  ProductRemoteDataSourceImpl(this._apiClient);
+  // The ApiClient is not used in this mock implementation, so it's removed.
+  // In a real implementation, it would be used to make network requests.
+  ProductRemoteDataSourceImpl();
 
   @override
   Future<List<db.Product>> getProducts() async {

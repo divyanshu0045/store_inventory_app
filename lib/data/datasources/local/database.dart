@@ -172,6 +172,15 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
     final result = await query.getSingle();
     return result.read(countExp) ?? 0;
   }
+
+  Future<List<Product>> getTopStockedProducts(int limit) {
+    return (select(products)
+          ..orderBy([(p) => OrderingTerm.desc(p.stockQuantity)])
+          ..limit(limit))
+        .get();
+  }
+
+  Future<List<Product>> getAllProducts() => select(products).get();
 }
 
 @DriftAccessor(tables: [Lots])

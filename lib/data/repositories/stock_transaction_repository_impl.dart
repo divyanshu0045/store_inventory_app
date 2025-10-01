@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:inventory_management_app/core/errors/failures.dart';
 import 'package:inventory_management_app/data/datasources/local/database.dart' as db;
 import 'package:inventory_management_app/domain/repositories/stock_transaction_repository.dart';
@@ -20,50 +21,43 @@ class StockTransactionRepositoryImpl implements StockTransactionRepository {
   @override
   Future<void> addTransaction(db.StockTransaction transaction) {
     return _database.transaction(() async {
-      // 1. Insert the transaction record
-      await _database.stockTransactionDao.insertTransaction(transaction);
-
-      // 2. Get the current product
+      // 1. Get the product to ensure it exists.
       final product = await _database.productDao.getProductById(transaction.productId);
       if (product == null) {
-        // In a real app, might want a more specific exception
         throw Exception('Product not found for stock transaction.');
       }
 
-      // 3. Calculate the new stock quantity
-      // The transaction.type is already a `TransactionType` enum due to the converter.
-      final newQuantity = _calculateNewQuantity(
-        product.stockQuantity,
-        transaction.quantity,
-        transaction.type,
-      );
+      // 2. If the transaction is linked to a specific lot, update the lot's quantity.
+      if (transaction.lotId != null) {
+        final lot = await (_database.select(_database.lots)..where((l) => l.id.equals(transaction.lotId!))).getSingleOrNull();
+        if (lot == null) {
+          throw Exception('Lot not found for stock transaction.');
+        }
 
-      // 4. Update the product with the new quantity
-      await _database.productDao.updateProduct(product.copyWith(stockQuantity: newQuantity));
+        int newLotQuantity;
+        if (transaction.type == db.TransactionType.IN) {
+          newLotQuantity = lot.quantity + transaction.quantity;
+        } else { // OUT or ADJUST
+          newLotQuantity = lot.quantity - transaction.quantity;
+          if (newLotQuantity < 0) {
+            throw InsufficientStockException('Insufficient stock in batch ${lot.batchNumber}. Required: ${transaction.quantity}, available: ${lot.quantity}.');
+          }
+        }
+
+        // Update the specific lot's quantity.
+        await (_database.update(_database.lots)..where((l) => l.id.equals(transaction.lotId!)))
+            .write(db.LotsCompanion(quantity: Value(newLotQuantity)));
+      }
+
+      // 3. Insert the transaction record.
+      await _database.stockTransactionDao.insertTransaction(transaction);
+
+      // 4. Recalculate the product's total stock quantity by summing all its lots.
+      final allLots = await (_database.select(_database.lots)..where((l) => l.productId.equals(transaction.productId))).get();
+      final totalStock = allLots.fold<int>(0, (sum, currentLot) => sum + currentLot.quantity);
+
+      // 5. Update the product's main stock quantity with the new total.
+      await _database.productDao.updateProduct(product.copyWith(stockQuantity: totalStock));
     });
-  }
-
-  int _calculateNewQuantity(int currentQty, int changeQty, db.TransactionType type) {
-    switch (type) {
-      case db.TransactionType.IN:
-        return currentQty + changeQty;
-      case db.TransactionType.OUT:
-        // For OUT and ADJUST, we subtract from stock.
-        final newQty = currentQty - changeQty;
-        if (newQty < 0) {
-          // This prevents stock from going negative.
-          throw InsufficientStockException('Cannot complete transaction. Stock would be negative.');
-        }
-        return newQty;
-      case db.TransactionType.ADJUST:
-        // In this implementation, ADJUST is treated as an absolute new value, not a delta.
-        // For a more robust system, you might handle ADJUST differently.
-        // For now, we'll assume it behaves like an OUT for simplicity of quantity calculation logic.
-        final adjustedQty = currentQty - changeQty;
-         if (adjustedQty < 0) {
-          throw InsufficientStockException('Cannot complete transaction. Stock would be negative.');
-        }
-        return adjustedQty;
-    }
   }
 }

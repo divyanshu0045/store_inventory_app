@@ -110,4 +110,14 @@ class ProductRepositoryImpl implements ProductRepository {
       }
     }
   }
+
+  @override
+  Future<List<Product>> getTopStockedProducts({int limit = 5}) {
+    return _productDao.getTopStockedProducts(limit);
+  }
+
+  @override
+  Future<List<Product>> getAllProducts() {
+    return _productDao.getAllProducts();
+  }
 }

@@ -22,4 +22,8 @@ abstract class ProductRepository {
   Future<int> getLowStockCount();
 
   Future<void> syncProducts();
+
+  Future<List<db.Product>> getTopStockedProducts({int limit = 5});
+
+  Future<List<db.Product>> getAllProducts();
 }

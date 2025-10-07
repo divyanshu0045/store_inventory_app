@@ -83,21 +83,30 @@ This project is equipped with a GitHub Actions workflow that automates the proce
 
 ### Workflow Overview
 
-The CI pipeline is defined in the `.github/workflows/main.yml` file and consists of two separate jobs:
+The CI pipeline is defined in the `.github/workflows/main.yml` file and consists of three jobs that run in sequence:
 
-1.  **Build for Android and Web**:
+1.  **Run Tests**:
     -   Runs on an `ubuntu-latest` environment.
-    -   Sets up the Flutter and Java environments.
-    -   Installs all project dependencies.
-    -   Runs the full suite of automated tests.
-    -   Builds the Android APK and the web application.
-    -   Uploads the generated APK and web build as artifacts, which can be downloaded.
-
-2.  **Build for iOS**:
-    -   Runs on a `macos-latest` environment.
     -   Sets up the Flutter environment.
-    -   Installs dependencies.
-    -   Builds the iOS application (without code signing).
+    -   Generates the necessary native project files (`flutter create .`).
+    -   Installs all project dependencies.
+    -   Runs the full suite of automated tests (`flutter test`). If this job fails, the build jobs will not run.
+
+2.  **Build for Android and Web**:
+    -   Runs on an `ubuntu-latest` environment after the `Run Tests` job succeeds.
+    -   Sets up Flutter and Java.
+    -   Generates the necessary native project files (`flutter create .`).
+    -   Installs all project dependencies.
+    -   Builds the Android APK and the web application.
+    -   Uploads the generated APK and web build as artifacts.
+
+3.  **Build for iOS**:
+    -   Runs on a `macos-latest` environment after the `Run Tests` job succeeds.
+    -   Sets up Flutter.
+    -   Generates the necessary native project files (`flutter create .`).
+    -   Corrects the generated `Podfile` to ensure it can find the Flutter SDK.
+    -   Installs all project dependencies (including CocoaPods).
+    -   Builds the iOS application for the simulator (no artifacts are uploaded for this build).
 
 ### Accessing Build Artifacts
 

@@ -7,7 +7,30 @@ on:
     branches: [ "feat/core-features-and-offline-db" ]
 
 jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Generate platform-specific files
+        run: flutter create .
+      - name: Restore potentially overwritten files
+        run: git restore pubspec.yaml README.md || true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Remove boilerplate test
+        run: rm test/widget_test.dart
+      - name: Run tests
+        run: flutter test
+
   build_android_web:
+    name: Build for Android and Web
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,8 +50,6 @@ jobs:
         run: git restore pubspec.yaml README.md || true
       - name: Get dependencies
         run: flutter pub get
-      - name: Run tests
-        run: flutter test
       - name: Build Android APK
         run: flutter build apk
       - name: Upload APK artifact
@@ -45,6 +66,8 @@ jobs:
           path: build/web
 
   build_ios:
+    name: Build for iOS
+    needs: test
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -59,6 +82,8 @@ jobs:
         run: git restore pubspec.yaml README.md || true
       - name: Get dependencies
         run: flutter pub get
+      - name: Fix Podfile Flutter SDK path
+        run: sed -i.bak "s|require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)|require File.expand_path(File.join(ENV['FLUTTER_ROOT'], 'packages', 'flutter_tools', 'bin', 'podhelper'), __FILE__)|g" ios/Podfile
       - name: Install iOS dependencies
         run: pod install --repo-update
         working-directory: ./ios

@@ -42,7 +42,7 @@ class ScaffoldWithNestedNavigation extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.sync),
             onPressed: () {
-              ref.read(syncServiceProvider).performSync();
+              ref.read(syncServiceProvider).sync();
             },
           ),
         ],

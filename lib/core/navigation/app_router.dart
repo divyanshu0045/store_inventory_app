@@ -7,18 +7,13 @@ import 'package:inventory_management_app/features/auth/presentation/providers/au
 import 'package:inventory_management_app/features/auth/presentation/screens/login_screen.dart';
 import 'package:inventory_management_app/features/auth/presentation/screens/signup_screen.dart';
 import 'package:inventory_management_app/features/dashboard/presentation/screens/dashboard_screen.dart';
-import 'package:inventory_management_app/features/inventory/presentation/providers/inventory_filter.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/add_lot_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/add_product_screen.dart';
-import 'package:inventory_management_app/features/inventory/presentation/screens/filter_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/inventory_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/add_stock_transaction_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/edit_product_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/product_detail_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/screens/scanner_screen.dart';
-import 'package:inventory_management_app/features/inventory/presentation/screens/stocktake_counting_screen.dart';
-import 'package:inventory_management_app/features/inventory/presentation/screens/stocktake_screen.dart';
-import 'package:inventory_management_app/features/inventory/presentation/providers/stocktake_providers.dart';
 import 'package:inventory_management_app/features/reports/presentation/screens/reports_screen.dart';
 import 'package:inventory_management_app/features/search/presentation/screens/global_search_screen.dart';
 import 'package:inventory_management_app/features/settings/presentation/screens/settings_screen.dart';
@@ -73,14 +68,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'product/:productId',
                     builder: (context, state) => ProductDetailScreen(productId: state.pathParameters['productId']!),
-                  ),
-                  GoRoute(
-                    path: 'filter',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) {
-                      final filter = state.extra as ProductFilter;
-                      return FilterScreen(initialFilter: filter);
-                    },
                   ),
                 ],
               ),
@@ -147,28 +134,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return AddStockTransactionScreen(product: product);
         },
       ),
-      GoRoute(
+       GoRoute(
         path: '/add-lot',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final product = state.extra as db.Product;
           return AddLotScreen(product: product);
         },
-      ),
-      GoRoute(
-        path: '/stocktake',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const StocktakeScreen(),
-        routes: [
-           GoRoute(
-            path: 'counting',
-            parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) {
-              final filter = state.extra as StocktakeFilter;
-              return StocktakeCountingScreen(filter: filter);
-            },
-          ),
-        ]
       ),
       GoRoute(
         path: '/scanner',

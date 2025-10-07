@@ -768,11 +768,6 @@ class $SuppliersTable extends Suppliers
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  @override
-  late final GeneratedColumnWithTypeConverter<SyncStatus, int> syncStatus =
-      GeneratedColumn<int>('sync_status', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<SyncStatus>($SuppliersTable.$convertersyncStatus);
   static const VerificationMeta _contactNameMeta =
       const VerificationMeta('contactName');
   @override
@@ -790,8 +785,7 @@ class $SuppliersTable extends Suppliers
       'phone', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, name, syncStatus, contactName, email, phone];
+  List<GeneratedColumn> get $columns => [id, name, contactName, email, phone];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -840,9 +834,6 @@ class $SuppliersTable extends Suppliers
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      syncStatus: $SuppliersTable.$convertersyncStatus.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sync_status'])!),
       contactName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}contact_name']),
       email: attachedDatabase.typeMapping
@@ -856,22 +847,17 @@ class $SuppliersTable extends Suppliers
   $SuppliersTable createAlias(String alias) {
     return $SuppliersTable(attachedDatabase, alias);
   }
-
-  static JsonTypeConverter2<SyncStatus, int, int> $convertersyncStatus =
-      const EnumIndexConverter(SyncStatus.values);
 }
 
 class Supplier extends DataClass implements Insertable<Supplier> {
   final String id;
   final String name;
-  final SyncStatus syncStatus;
   final String? contactName;
   final String? email;
   final String? phone;
   const Supplier(
       {required this.id,
       required this.name,
-      required this.syncStatus,
       this.contactName,
       this.email,
       this.phone});
@@ -880,10 +866,6 @@ class Supplier extends DataClass implements Insertable<Supplier> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
-    {
-      map['sync_status'] =
-          Variable<int>($SuppliersTable.$convertersyncStatus.toSql(syncStatus));
-    }
     if (!nullToAbsent || contactName != null) {
       map['contact_name'] = Variable<String>(contactName);
     }
@@ -900,7 +882,6 @@ class Supplier extends DataClass implements Insertable<Supplier> {
     return SuppliersCompanion(
       id: Value(id),
       name: Value(name),
-      syncStatus: Value(syncStatus),
       contactName: contactName == null && nullToAbsent
           ? const Value.absent()
           : Value(contactName),
@@ -917,8 +898,6 @@ class Supplier extends DataClass implements Insertable<Supplier> {
     return Supplier(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      syncStatus: $SuppliersTable.$convertersyncStatus
-          .fromJson(serializer.fromJson<int>(json['syncStatus'])),
       contactName: serializer.fromJson<String?>(json['contactName']),
       email: serializer.fromJson<String?>(json['email']),
       phone: serializer.fromJson<String?>(json['phone']),
@@ -930,8 +909,6 @@ class Supplier extends DataClass implements Insertable<Supplier> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
-      'syncStatus': serializer
-          .toJson<int>($SuppliersTable.$convertersyncStatus.toJson(syncStatus)),
       'contactName': serializer.toJson<String?>(contactName),
       'email': serializer.toJson<String?>(email),
       'phone': serializer.toJson<String?>(phone),
@@ -941,14 +918,12 @@ class Supplier extends DataClass implements Insertable<Supplier> {
   Supplier copyWith(
           {String? id,
           String? name,
-          SyncStatus? syncStatus,
           Value<String?> contactName = const Value.absent(),
           Value<String?> email = const Value.absent(),
           Value<String?> phone = const Value.absent()}) =>
       Supplier(
         id: id ?? this.id,
         name: name ?? this.name,
-        syncStatus: syncStatus ?? this.syncStatus,
         contactName: contactName.present ? contactName.value : this.contactName,
         email: email.present ? email.value : this.email,
         phone: phone.present ? phone.value : this.phone,
@@ -957,8 +932,6 @@ class Supplier extends DataClass implements Insertable<Supplier> {
     return Supplier(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
-      syncStatus:
-          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
       contactName:
           data.contactName.present ? data.contactName.value : this.contactName,
       email: data.email.present ? data.email.value : this.email,
@@ -971,7 +944,6 @@ class Supplier extends DataClass implements Insertable<Supplier> {
     return (StringBuffer('Supplier(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('syncStatus: $syncStatus, ')
           ..write('contactName: $contactName, ')
           ..write('email: $email, ')
           ..write('phone: $phone')
@@ -980,15 +952,13 @@ class Supplier extends DataClass implements Insertable<Supplier> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, syncStatus, contactName, email, phone);
+  int get hashCode => Object.hash(id, name, contactName, email, phone);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Supplier &&
           other.id == this.id &&
           other.name == this.name &&
-          other.syncStatus == this.syncStatus &&
           other.contactName == this.contactName &&
           other.email == this.email &&
           other.phone == this.phone);
@@ -997,7 +967,6 @@ class Supplier extends DataClass implements Insertable<Supplier> {
 class SuppliersCompanion extends UpdateCompanion<Supplier> {
   final Value<String> id;
   final Value<String> name;
-  final Value<SyncStatus> syncStatus;
   final Value<String?> contactName;
   final Value<String?> email;
   final Value<String?> phone;
@@ -1005,7 +974,6 @@ class SuppliersCompanion extends UpdateCompanion<Supplier> {
   const SuppliersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.syncStatus = const Value.absent(),
     this.contactName = const Value.absent(),
     this.email = const Value.absent(),
     this.phone = const Value.absent(),
@@ -1014,18 +982,15 @@ class SuppliersCompanion extends UpdateCompanion<Supplier> {
   SuppliersCompanion.insert({
     required String id,
     required String name,
-    required SyncStatus syncStatus,
     this.contactName = const Value.absent(),
     this.email = const Value.absent(),
     this.phone = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        name = Value(name),
-        syncStatus = Value(syncStatus);
+        name = Value(name);
   static Insertable<Supplier> custom({
     Expression<String>? id,
     Expression<String>? name,
-    Expression<int>? syncStatus,
     Expression<String>? contactName,
     Expression<String>? email,
     Expression<String>? phone,
@@ -1034,7 +999,6 @@ class SuppliersCompanion extends UpdateCompanion<Supplier> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (syncStatus != null) 'sync_status': syncStatus,
       if (contactName != null) 'contact_name': contactName,
       if (email != null) 'email': email,
       if (phone != null) 'phone': phone,
@@ -1045,7 +1009,6 @@ class SuppliersCompanion extends UpdateCompanion<Supplier> {
   SuppliersCompanion copyWith(
       {Value<String>? id,
       Value<String>? name,
-      Value<SyncStatus>? syncStatus,
       Value<String?>? contactName,
       Value<String?>? email,
       Value<String?>? phone,
@@ -1053,7 +1016,6 @@ class SuppliersCompanion extends UpdateCompanion<Supplier> {
     return SuppliersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      syncStatus: syncStatus ?? this.syncStatus,
       contactName: contactName ?? this.contactName,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -1069,10 +1031,6 @@ class SuppliersCompanion extends UpdateCompanion<Supplier> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
-    }
-    if (syncStatus.present) {
-      map['sync_status'] = Variable<int>(
-          $SuppliersTable.$convertersyncStatus.toSql(syncStatus.value));
     }
     if (contactName.present) {
       map['contact_name'] = Variable<String>(contactName.value);
@@ -1094,7 +1052,6 @@ class SuppliersCompanion extends UpdateCompanion<Supplier> {
     return (StringBuffer('SuppliersCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('syncStatus: $syncStatus, ')
           ..write('contactName: $contactName, ')
           ..write('email: $email, ')
           ..write('phone: $phone, ')
@@ -2515,7 +2472,6 @@ typedef $$ProductsTableProcessedTableManager = ProcessedTableManager<
 typedef $$SuppliersTableCreateCompanionBuilder = SuppliersCompanion Function({
   required String id,
   required String name,
-  required SyncStatus syncStatus,
   Value<String?> contactName,
   Value<String?> email,
   Value<String?> phone,
@@ -2524,7 +2480,6 @@ typedef $$SuppliersTableCreateCompanionBuilder = SuppliersCompanion Function({
 typedef $$SuppliersTableUpdateCompanionBuilder = SuppliersCompanion Function({
   Value<String> id,
   Value<String> name,
-  Value<SyncStatus> syncStatus,
   Value<String?> contactName,
   Value<String?> email,
   Value<String?> phone,
@@ -2545,11 +2500,6 @@ class $$SuppliersTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<SyncStatus, SyncStatus, int> get syncStatus =>
-      $composableBuilder(
-          column: $table.syncStatus,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get contactName => $composableBuilder(
       column: $table.contactName, builder: (column) => ColumnFilters(column));
@@ -2576,9 +2526,6 @@ class $$SuppliersTableOrderingComposer
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get syncStatus => $composableBuilder(
-      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get contactName => $composableBuilder(
       column: $table.contactName, builder: (column) => ColumnOrderings(column));
 
@@ -2603,10 +2550,6 @@ class $$SuppliersTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<SyncStatus, int> get syncStatus =>
-      $composableBuilder(
-          column: $table.syncStatus, builder: (column) => column);
 
   GeneratedColumn<String> get contactName => $composableBuilder(
       column: $table.contactName, builder: (column) => column);
@@ -2643,7 +2586,6 @@ class $$SuppliersTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> name = const Value.absent(),
-            Value<SyncStatus> syncStatus = const Value.absent(),
             Value<String?> contactName = const Value.absent(),
             Value<String?> email = const Value.absent(),
             Value<String?> phone = const Value.absent(),
@@ -2652,7 +2594,6 @@ class $$SuppliersTableTableManager extends RootTableManager<
               SuppliersCompanion(
             id: id,
             name: name,
-            syncStatus: syncStatus,
             contactName: contactName,
             email: email,
             phone: phone,
@@ -2661,7 +2602,6 @@ class $$SuppliersTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String name,
-            required SyncStatus syncStatus,
             Value<String?> contactName = const Value.absent(),
             Value<String?> email = const Value.absent(),
             Value<String?> phone = const Value.absent(),
@@ -2670,7 +2610,6 @@ class $$SuppliersTableTableManager extends RootTableManager<
               SuppliersCompanion.insert(
             id: id,
             name: name,
-            syncStatus: syncStatus,
             contactName: contactName,
             email: email,
             phone: phone,

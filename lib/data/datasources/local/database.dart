@@ -1,8 +1,4 @@
 import 'package:drift/drift.dart';
-import 'dart:io';
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
 
@@ -101,7 +97,7 @@ class ListConverter extends TypeConverter<List<String>, String> {
     tables: [Products, Suppliers, Users, StockTransactions, Lots],
     daos: [ProductDao, SupplierDao, UserDao, StockTransactionDao, LotDao])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase(QueryExecutor e) : super(e);
 
   @override
   int get schemaVersion => 4;
@@ -119,14 +115,6 @@ class AppDatabase extends _$AppDatabase {
           }
         },
       );
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase(file);
-  });
 }
 
 // DAOs

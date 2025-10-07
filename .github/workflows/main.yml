@@ -23,8 +23,10 @@ jobs:
         run: git restore pubspec.yaml README.md || true
       - name: Get dependencies
         run: flutter pub get
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
       - name: Remove boilerplate test
-        run: rm test/widget_test.dart
+        run: rm -f test/widget_test.dart
       - name: Run tests
         run: flutter test
 
@@ -50,6 +52,8 @@ jobs:
         run: git restore pubspec.yaml README.md || true
       - name: Get dependencies
         run: flutter pub get
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
       - name: Build Android APK
         run: flutter build apk
       - name: Upload APK artifact
@@ -84,6 +88,8 @@ jobs:
         run: flutter pub get
       - name: Fix Podfile Flutter SDK path
         run: sed -i.bak "s|require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)|require File.expand_path(File.join(ENV['FLUTTER_ROOT'], 'packages', 'flutter_tools', 'bin', 'podhelper'), __FILE__)|g" ios/Podfile
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
       - name: Install iOS dependencies
         run: pod install --repo-update
         working-directory: ./ios

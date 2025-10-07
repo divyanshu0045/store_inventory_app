@@ -2,9 +2,9 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "feat/core-features-and-offline-db" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "feat/core-features-and-offline-db" ]
 
 jobs:
   build_android_web:

@@ -76,3 +76,33 @@ flutter build apk --release
 ```
 
 The generated APK file will be located in the `build/app/outputs/flutter-apk/` directory. You can then install this file on an Android device.
+
+## GitHub Actions CI Workflow
+
+This project is equipped with a GitHub Actions workflow that automates the process of building and testing the application. This ensures that every change pushed to the `feat/core-features-and-offline-db` branch is automatically verified.
+
+### Workflow Overview
+
+The CI pipeline is defined in the `.github/workflows/main.yml` file and consists of two separate jobs:
+
+1.  **Build for Android and Web**:
+    -   Runs on an `ubuntu-latest` environment.
+    -   Sets up the Flutter and Java environments.
+    -   Installs all project dependencies.
+    -   Runs the full suite of automated tests.
+    -   Builds the Android APK and the web application.
+    -   Uploads the generated APK and web build as artifacts, which can be downloaded.
+
+2.  **Build for iOS**:
+    -   Runs on a `macos-latest` environment.
+    -   Sets up the Flutter environment.
+    -   Installs dependencies.
+    -   Builds the iOS application (without code signing).
+
+### Accessing Build Artifacts
+
+After a workflow run is successfully completed on a push to the `feat/core-features-and-offline-db` branch, you can download the build artifacts (the Android APK and the web build) directly from the GitHub Actions summary page.
+
+1.  Navigate to the **Actions** tab in the GitHub repository.
+2.  Click on the most recent workflow run for the `feat/core-features-and-offline-db` branch.
+3.  On the summary page for that run, you will find an "Artifacts" section where you can download the `release-apk` and `web-build`.

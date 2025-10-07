@@ -21,10 +21,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - name: Generate platform-specific files
-        run: flutter create .
-      - name: Restore potentially overwritten files
-        run: git restore pubspec.yaml README.md || true
       - name: Get dependencies
         run: flutter pub get
       - name: Run tests
@@ -53,10 +49,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - name: Generate platform-specific files
-        run: flutter create .
-      - name: Restore potentially overwritten files
-        run: git restore pubspec.yaml README.md || true
       - name: Get dependencies
         run: flutter pub get
       - name: Install iOS dependencies

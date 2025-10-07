@@ -13,12 +13,17 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goRouter = ref.watch(goRouterProvider);
+    // Watch the theme notifier provider to get the current theme mode.
+    final themeMode = ref.watch(themeNotifierProvider);
+
     return MaterialApp.router(
       title: 'Inventory Management',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      // Use the themeMode from the provider.
+      themeMode: themeMode,
       routerConfig: goRouter,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

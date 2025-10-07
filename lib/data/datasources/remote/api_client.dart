@@ -6,7 +6,7 @@ class ApiClient {
   ApiClient()
       : _dio = Dio(
           BaseOptions(
-            baseUrl: 'https://api.yourapp.com/v1', // Placeholder URL
+            baseUrl: 'http://127.0.0.1:8000', // Point to the local FastAPI server
             connectTimeout: const Duration(seconds: 5),
             receiveTimeout: const Duration(seconds: 3),
             headers: {

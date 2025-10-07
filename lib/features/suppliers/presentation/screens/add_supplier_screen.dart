@@ -36,6 +36,7 @@ class _AddSupplierScreenState extends ConsumerState<AddSupplierScreen> {
         contactName: _contactNameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
+        syncStatus: db.SyncStatus.pending_create,
       );
 
       try {

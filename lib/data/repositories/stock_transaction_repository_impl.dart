@@ -21,43 +21,66 @@ class StockTransactionRepositoryImpl implements StockTransactionRepository {
   @override
   Future<void> addTransaction(db.StockTransaction transaction) {
     return _database.transaction(() async {
-      // 1. Get the product to ensure it exists.
       final product = await _database.productDao.getProductById(transaction.productId);
       if (product == null) {
         throw Exception('Product not found for stock transaction.');
       }
 
-      // 2. If the transaction is linked to a specific lot, update the lot's quantity.
+      // If a lot is specified, adjust that lot directly.
       if (transaction.lotId != null) {
-        final lot = await (_database.select(_database.lots)..where((l) => l.id.equals(transaction.lotId!))).getSingleOrNull();
-        if (lot == null) {
-          throw Exception('Lot not found for stock transaction.');
-        }
-
-        int newLotQuantity;
-        if (transaction.type == db.TransactionType.IN) {
-          newLotQuantity = lot.quantity + transaction.quantity;
-        } else { // OUT or ADJUST
-          newLotQuantity = lot.quantity - transaction.quantity;
-          if (newLotQuantity < 0) {
-            throw InsufficientStockException('Insufficient stock in batch ${lot.batchNumber}. Required: ${transaction.quantity}, available: ${lot.quantity}.');
-          }
-        }
-
-        // Update the specific lot's quantity.
-        await (_database.update(_database.lots)..where((l) => l.id.equals(transaction.lotId!)))
-            .write(db.LotsCompanion(quantity: Value(newLotQuantity)));
+        await _adjustSpecificLot(transaction);
+      }
+      // If no lot is specified (e.g., from a stocktake adjustment), adjust the first available lot.
+      else if (transaction.type == db.TransactionType.ADJUST) {
+        await _adjustFirstAvailableLot(transaction);
+      } else {
+        throw Exception('IN/OUT transactions must be associated with a specific lot.');
       }
 
-      // 3. Insert the transaction record.
+      // Insert the transaction record AFTER processing the logic.
       await _database.stockTransactionDao.insertTransaction(transaction);
 
-      // 4. Recalculate the product's total stock quantity by summing all its lots.
+      // Recalculate the product's total stock quantity by summing all its lots.
       final allLots = await (_database.select(_database.lots)..where((l) => l.productId.equals(transaction.productId))).get();
       final totalStock = allLots.fold<int>(0, (sum, currentLot) => sum + currentLot.quantity);
 
-      // 5. Update the product's main stock quantity with the new total.
+      // Update the product's main stock quantity.
       await _database.productDao.updateProduct(product.copyWith(stockQuantity: totalStock));
     });
+  }
+
+  Future<void> _adjustSpecificLot(db.StockTransaction transaction) async {
+    final lot = await (_database.select(_database.lots)..where((l) => l.id.equals(transaction.lotId!))).getSingleOrNull();
+    if (lot == null) throw Exception('Lot not found for stock transaction.');
+
+    int newLotQuantity;
+    if (transaction.type == db.TransactionType.IN) {
+      newLotQuantity = lot.quantity + transaction.quantity;
+    } else { // OUT or ADJUST
+      newLotQuantity = lot.quantity - transaction.quantity;
+      if (newLotQuantity < 0) {
+        throw InsufficientStockException('Insufficient stock in batch ${lot.batchNumber}. Required: ${transaction.quantity}, available: ${lot.quantity}.');
+      }
+    }
+
+    await (_database.update(_database.lots)..where((l) => l.id.equals(transaction.lotId!)))
+        .write(db.LotsCompanion(quantity: Value(newLotQuantity)));
+  }
+
+  Future<void> _adjustFirstAvailableLot(db.StockTransaction transaction) async {
+      final lots = await (_database.select(_database.lots)..where((l) => l.productId.equals(transaction.productId))).get();
+      if (lots.isEmpty) {
+        throw Exception('Cannot adjust stock for a product with no lots. Please add a lot first.');
+      }
+      // Simple strategy: adjust the first lot. A more complex strategy (e.g., FEFO) could be used here.
+      final lotToAdjust = lots.first;
+      final newQuantity = lotToAdjust.quantity + transaction.quantity; // ADJUST quantity can be negative
+
+       if (newQuantity < 0) {
+          throw InsufficientStockException('Insufficient stock in batch ${lotToAdjust.batchNumber}. Adjustment would result in negative quantity.');
+        }
+
+      await (_database.update(_database.lots)..where((l) => l.id.equals(lotToAdjust.id)))
+          .write(db.LotsCompanion(quantity: Value(newQuantity)));
   }
 }

@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-DatabaseConnection connect() {
+QueryExecutor connect() {
   throw UnsupportedError(
     'This platform is not supported for the database connection.',
   );

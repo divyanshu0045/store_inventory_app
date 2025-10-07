@@ -59,5 +59,8 @@ jobs:
         run: git restore pubspec.yaml README.md || true
       - name: Get dependencies
         run: flutter pub get
+      - name: Install iOS dependencies
+        run: pod install --repo-update
+        working-directory: ./ios
       - name: Build iOS
         run: flutter build ios --simulator

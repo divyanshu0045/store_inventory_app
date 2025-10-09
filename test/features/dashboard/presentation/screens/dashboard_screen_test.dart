@@ -1,27 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:inventory_management_app/data/datasources/local/database.dart' as db;
+import 'package:inventory_management_app/data/datasources/local/database_provider.dart';
 import 'package:inventory_management_app/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:inventory_management_app/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:inventory_management_app/features/inventory/presentation/providers/stock_transaction_providers.dart';
-import 'package:inventory_management_app/data/datasources/local/database.dart' as db;
+
+import '../../../../test_utils.dart';
 
 void main() {
+  late db.AppDatabase testDatabase;
+
+  // Create a fresh in-memory database for each test.
+  setUp(() {
+    testDatabase = createTestDatabase();
+  });
+
+  // Close the database after each test.
+  tearDown(() async {
+    await testDatabase.close();
+  });
+
   testWidgets('DashboardScreen shows loading indicators when providers are loading', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(
+      ProviderScope(
+        overrides: [
+          // Override the database provider to use the in-memory version.
+          // This is necessary because the dashboard providers depend on it.
+          databaseProvider.overrideWithValue(testDatabase),
+        ],
+        child: const MaterialApp(
           home: DashboardScreen(),
         ),
       ),
     );
 
     // The DashboardScreen has 5 providers that will be in a loading state initially.
-    // - productCountProvider (FutureProvider)
-    // - lowStockCountProvider (FutureProvider)
-    // - lowStockProductsProvider (StreamProvider)
-    // - topStockedProductsProvider (FutureProvider)
-    // - recentTransactionsStreamProvider (StreamProvider)
     // Each of these displays a CircularProgressIndicator in its loading state.
     expect(find.byType(CircularProgressIndicator), findsNWidgets(5));
   });
@@ -30,6 +45,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          // Override the database provider itself for any underlying dependencies
+          databaseProvider.overrideWithValue(testDatabase),
+          // Override the specific providers with mock data
           productCountProvider.overrideWith((ref) => 10),
           lowStockCountProvider.overrideWith((ref) => 2),
           lowStockProductsProvider.overrideWith((ref) => Stream.value([])),
@@ -59,6 +77,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          // Override the database provider itself for any underlying dependencies
+          databaseProvider.overrideWithValue(testDatabase),
+          // Override the specific providers with error states
           productCountProvider.overrideWith((ref) => throw error),
           lowStockCountProvider.overrideWith((ref) => throw error),
           lowStockProductsProvider.overrideWith((ref) => Stream.error(error)),
@@ -77,8 +98,6 @@ void main() {
     // Assert that the error UI is shown for the providers that have it
     expect(find.text('Error'), findsNWidgets(2)); // For the two summary cards
     expect(find.text('Could not load activity.'), findsOneWidget);
-
-    // The other providers show a SizedBox.shrink() on error, so we don't expect visible error text for them.
 
     // Assert that no loading indicators are present
     expect(find.byType(CircularProgressIndicator), findsNothing);

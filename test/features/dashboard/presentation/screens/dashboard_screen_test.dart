@@ -39,6 +39,9 @@ void main() {
     // The DashboardScreen has 5 providers that will be in a loading state initially.
     // Each of these displays a CircularProgressIndicator in its loading state.
     expect(find.byType(CircularProgressIndicator), findsNWidgets(5));
+
+    // Wait for all timers to complete, including those for stream cleanup.
+    await tester.pumpAndSettle();
   });
 
   testWidgets('DashboardScreen shows data when all providers return data', (tester) async {

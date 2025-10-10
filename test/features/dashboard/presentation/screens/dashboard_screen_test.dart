@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,25 +24,26 @@ void main() {
   });
 
   testWidgets('DashboardScreen shows loading indicators when providers are loading', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          // Override the database provider to use the in-memory version.
-          // This is necessary because the dashboard providers depend on it.
-          databaseProvider.overrideWithValue(testDatabase),
-        ],
-        child: const MaterialApp(
-          home: DashboardScreen(),
+    // We use fakeAsync to control timers and prevent pending timer errors.
+    await fakeAsync((async) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            // Override the database provider to use the in-memory version.
+            databaseProvider.overrideWithValue(testDatabase),
+          ],
+          child: const MaterialApp(
+            home: DashboardScreen(),
+          ),
         ),
-      ),
-    );
+      );
 
-    // The DashboardScreen has 5 providers that will be in a loading state initially.
-    // Each of these displays a CircularProgressIndicator in its loading state.
-    expect(find.byType(CircularProgressIndicator), findsNWidgets(5));
+      // The DashboardScreen has 5 providers that will be in a loading state initially.
+      expect(find.byType(CircularProgressIndicator), findsNWidgets(5));
 
-    // Wait for all timers to complete, including those for stream cleanup.
-    await tester.pumpAndSettle();
+      // Flush any pending timers from stream cleanup to prevent test failure.
+      async.flushTimers();
+    })(tester);
   });
 
   testWidgets('DashboardScreen shows data when all providers return data', (tester) async {

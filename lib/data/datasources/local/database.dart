@@ -1,8 +1,4 @@
 import 'package:drift/drift.dart';
-import 'dart:io';
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
 
@@ -27,6 +23,7 @@ class Products extends Table {
   RealColumn get sellingPrice => real().nullable()();
   TextColumn get imageUrls => text().map(const ListConverter()).nullable()();
   TextColumn get documentUrls => text().map(const ListConverter()).nullable()();
+  // expiryDate is removed from here and moved to the Lots table
 
   @override
   Set<Column> get primaryKey => {id};
@@ -48,7 +45,6 @@ class Lots extends Table {
 class Suppliers extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
-  IntColumn get syncStatus => integer().map(const EnumIndexConverter(SyncStatus.values))();
   TextColumn get contactName => text().nullable()();
   TextColumn get email => text().nullable()();
   TextColumn get phone => text().nullable()();
@@ -101,10 +97,10 @@ class ListConverter extends TypeConverter<List<String>, String> {
     tables: [Products, Suppliers, Users, StockTransactions, Lots],
     daos: [ProductDao, SupplierDao, UserDao, StockTransactionDao, LotDao])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -117,19 +113,8 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(lots);
             await m.addColumn(stockTransactions, stockTransactions.lotId);
           }
-           if (from < 5) {
-            await m.addColumn(suppliers, suppliers.syncStatus);
-          }
         },
       );
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase(file);
-  });
 }
 
 // DAOs
@@ -137,29 +122,15 @@ LazyDatabase _openConnection() {
 class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   ProductDao(AppDatabase db) : super(db);
 
-  Stream<List<Product>> watchAllProducts({
-    String? searchQuery,
-    bool lowStock = false,
-    String? location,
-    String? category,
-    String? supplierId,
-  }) {
+  Stream<List<Product>> watchAllProducts({String? searchQuery, bool lowStock = false}) {
     var query = select(products);
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       query.where((p) => p.name.like('%$searchQuery%') | p.sku.like('%$searchQuery%'));
     }
+
     if (lowStock) {
       query.where((p) => p.minimumStockThreshold.isNotNull() & p.stockQuantity.isSmallerOrEqual(p.minimumStockThreshold));
-    }
-    if (location != null) {
-      query.where((p) => p.location.equals(location));
-    }
-    if (category != null) {
-      query.where((p) => p.category.equals(category));
-    }
-    if (supplierId != null) {
-      query.where((p) => p.supplierId.equals(supplierId));
     }
 
     return query.watch();
@@ -198,29 +169,6 @@ class ProductDao extends DatabaseAccessor<AppDatabase> with _$ProductDaoMixin {
   }
 
   Future<List<Product>> getAllProducts() => select(products).get();
-
-  Future<List<String>> getAllLocations() async {
-    final query = selectOnly(products, distinct: true)..addColumns([products.location]);
-    final result = await query.map((row) => row.read(products.location)).get();
-    return result.where((loc) => loc != null).cast<String>().toList();
-  }
-
-  Future<List<String>> getAllCategories() async {
-    final query = selectOnly(products, distinct: true)..addColumns([products.category]);
-    final result = await query.map((row) => row.read(products.category)).get();
-    return result.where((cat) => cat != null).cast<String>().toList();
-  }
-
-  Future<List<Product>> getProductsBy({String? location, String? category}) {
-    final query = select(products);
-    if (location != null) {
-      query.where((p) => p.location.equals(location));
-    }
-    if (category != null) {
-      query.where((p) => p.category.equals(category));
-    }
-    return query.get();
-  }
 }
 
 @DriftAccessor(tables: [Lots])
@@ -253,7 +201,6 @@ class SupplierDao extends DatabaseAccessor<AppDatabase> with _$SupplierDaoMixin 
   Future<void> insertSupplier(Supplier supplier) => into(suppliers).insert(supplier);
   Future<bool> updateSupplier(Supplier supplier) => update(suppliers).replace(supplier);
   Future<int> deleteSupplier(String id) => (delete(suppliers)..where((s) => s.id.equals(id))).go();
-  Future<List<Supplier>> getUnsyncedSuppliers() => (select(suppliers)..where((s) => s.syncStatus.isNotValue(SyncStatus.synced.index))).get();
 }
 
 @DriftAccessor(tables: [Users])

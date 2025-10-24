@@ -1,8 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inventory_management_app/data/datasources/local/database.dart';
+import 'connection/connection.dart' as impl;
 
 final databaseProvider = Provider<AppDatabase>((ref) {
-  return AppDatabase();
+  return AppDatabase(impl.connect());
 });
 
 final productDaoProvider = Provider<ProductDao>((ref) {

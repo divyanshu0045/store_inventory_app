@@ -1,15 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:inventory_management_app/data/datasources/local/database.dart';
 import 'package:inventory_management_app/data/datasources/local/database_provider.dart';
+import 'package:inventory_management_app/data/datasources/remote/remote_data_source_providers.dart';
 import 'package:inventory_management_app/data/repositories/product_repository_impl.dart';
 import 'package:inventory_management_app/domain/repositories/product_repository.dart';
 import 'package:inventory_management_app/features/inventory/presentation/providers/inventory_filter.dart';
 
 // 1. Repository Provider (provides the abstraction)
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
-  // The implementation now only needs the local data source.
+  // Note: The implementation still needs access to its own dependencies.
   final localDataSource = ref.watch(productDaoProvider);
-  return ProductRepositoryImpl(localDataSource);
+  final remoteDataSource = ref.watch(productRemoteDataSourceProvider);
+  return ProductRepositoryImpl(localDataSource, remoteDataSource);
 });
 
 // 2. StateProvider for the product filter
@@ -27,13 +29,9 @@ final productListStreamProvider =
   final productRepository = ref.watch(productRepositoryProvider);
   final filter = ref.watch(productFilterProvider);
 
-  // Pass all available filter parameters to the repository.
   return productRepository.watchProducts(
     searchQuery: filter.searchQuery,
     lowStock: filter.lowStock,
-    location: filter.location,
-    category: filter.category,
-    supplierId: filter.supplierId,
   );
 });
 

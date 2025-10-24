@@ -7,36 +7,111 @@ on:
     branches: [ "feat/core-features-and-offline-db" ]
 
 jobs:
-  build_android_web:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: "11.x"
-      - uses: subosito/flutter-action@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - run: flutter pub get
-      - run: flutter test
-      - run: flutter build apk
-      - uses: actions/upload-artifact@v3
+      - name: Generate platform-specific files
+        run: flutter create .
+      - name: Restore potentially overwritten files
+        run: git restore pubspec.yaml README.md || true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+      - name: Remove boilerplate test
+        run: rm -f test/widget_test.dart
+      - name: Run tests
+        run: flutter test
+
+  build_android:
+    name: Build for Android
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: "17"
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Generate platform-specific files
+        run: flutter create .
+      - name: Restore potentially overwritten files
+        run: git restore pubspec.yaml README.md || true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+      - name: Build Android APK
+        run: flutter build apk
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-      - run: flutter build web
-      - uses: actions/upload-artifact@v3
+
+  build_web:
+    name: Build for Web
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Generate platform-specific files
+        run: flutter create .
+      - name: Restore potentially overwritten files
+        run: git restore pubspec.yaml README.md || true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+      - name: Build web
+        run: flutter build web
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v4
         with:
           name: web-build
           path: build/web
 
   build_ios:
+    name: Build for iOS
+    needs: test
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-      - run: flutter pub get
-      - run: flutter build ios --no-codesign
+      - name: Generate platform-specific files
+        run: flutter create .
+      - name: Restore potentially overwritten files
+        run: git restore pubspec.yaml README.md || true
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Fix Podfile Flutter SDK path
+        run: sed -i.bak "s|require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)|require File.expand_path(File.join(ENV['FLUTTER_ROOT'], 'packages', 'flutter_tools', 'bin', 'podhelper'), __FILE__)|g" ios/Podfile
+      - name: Run build_runner
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+      - name: Install iOS dependencies
+        run: pod install --repo-update
+        working-directory: ./ios
+      - name: Build iOS
+        run: flutter build ios --simulator

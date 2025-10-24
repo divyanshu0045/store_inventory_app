@@ -12,6 +12,4 @@ abstract class SupplierRepository {
   Future<void> updateSupplier(db.Supplier supplier);
 
   Future<void> deleteSupplier(String id);
-
-  Future<List<db.Supplier>> getUnsyncedSuppliers();
 }
